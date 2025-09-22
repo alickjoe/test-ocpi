@@ -11,7 +11,9 @@ import {
   sampleReserveNowCommand,
   sampleCancelReservationCommand,
   sampleUnlockConnectorCommand,
-  sampleBooking
+  sampleBooking,
+  sampleData_221,
+  sampleData_230
 } from './sample-data';
 import { 
   Box, 
@@ -37,7 +39,37 @@ function App() {
   const [jsonInput, setJsonInput] = useState('');
   const [validationResult, setValidationResult] = useState(null);
 
-  // Sample data mapping
+  // Version-specific sample data mapping
+  const getVersionSpecificSampleData = (module, version) => {
+    const isVersion230 = version === '2.3.0';
+    
+    // Core modules with version differences
+    if (module === 'locations') {
+      return isVersion230 ? sampleData_230.location : sampleData_221.location;
+    }
+    if (module === 'sessions') {
+      return isVersion230 ? sampleData_230.session : sampleData_221.session;
+    }
+    if (module === 'bookings') {
+      return isVersion230 ? sampleData_230.booking : null;
+    }
+    
+    // Modules without version differences (use legacy data)
+    const legacySampleDataMap = {
+      'cdrs': sampleCDR,
+      'tariffs': sampleTariff,
+      'tokens': sampleToken,
+      'commands/START_SESSION': sampleStartSessionCommand,
+      'commands/STOP_SESSION': sampleStopSessionCommand,
+      'commands/RESERVE_NOW': sampleReserveNowCommand,
+      'commands/CANCEL_RESERVATION': sampleCancelReservationCommand,
+      'commands/UNLOCK_CONNECTOR': sampleUnlockConnectorCommand
+    };
+    
+    return legacySampleDataMap[module] || null;
+  };
+
+  // Sample data mapping (legacy compatibility)
   const sampleDataMap = {
     'locations': sampleLocation,
     'sessions': sampleSession,
@@ -66,7 +98,10 @@ function App() {
   };
 
   const loadSampleData = () => {
-    const sampleData = sampleDataMap[module];
+    // Use version-specific data when available
+    const versionSpecificData = getVersionSpecificSampleData(module, version);
+    const sampleData = versionSpecificData || sampleDataMap[module];
+    
     if (sampleData) {
       setJsonInput(JSON.stringify(sampleData, null, 2));
       setValidationResult(null);
@@ -137,9 +172,9 @@ function App() {
             variant="outlined" 
             color="secondary" 
             onClick={loadSampleData}
-            disabled={!sampleDataMap[module]}
+            disabled={!getVersionSpecificSampleData(module, version) && !sampleDataMap[module]}
           >
-            加载示例数据
+            加载示例数据 ({version})
           </Button>
         </Grid>
         <Grid item>
@@ -162,27 +197,40 @@ function App() {
       {/* Version and Sample Data Availability Indicator */}
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          当前版本: {version} | 示例数据可用性:
+          当前版本: {version} | 示例数据可用性 (版本特定):
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {Object.keys(sampleDataMap).map((moduleKey) => (
-            <Chip
-              key={moduleKey}
-              label={moduleKey}
-              size="small"
-              color={module === moduleKey ? "primary" : "default"}
-              variant={sampleDataMap[moduleKey] ? "filled" : "outlined"}
-            />
-          ))}
-          {version === '2.3.0' && (
-            <Chip
-              label="bookings"
-              size="small"
-              color={module === 'bookings' ? "primary" : "default"}
-              variant="outlined"
-            />
-          )}
+          {['locations', 'sessions', 'bookings'].map((moduleKey) => {
+            const hasVersionSpecificData = getVersionSpecificSampleData(moduleKey, version) !== null;
+            const isCurrentModule = module === moduleKey;
+            
+            return (
+              <Chip
+                key={moduleKey}
+                label={`${moduleKey} (${version})`}
+                size="small"
+                color={isCurrentModule ? "primary" : "default"}
+                variant={hasVersionSpecificData ? "filled" : "outlined"}
+              />
+            );
+          })}
+          {/* Show legacy modules */}
+          {Object.keys(sampleDataMap).filter(key => !['locations', 'sessions', 'bookings'].includes(key)).map((moduleKey) => {
+            const isCurrentModule = module === moduleKey;
+            return (
+              <Chip
+                key={moduleKey}
+                label={`${moduleKey} (legacy)`}
+                size="small"
+                color={isCurrentModule ? "primary" : "default"}
+                variant="outlined"
+              />
+            );
+          })}
         </Box>
+        <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
+          填充: 版本特定数据 | 轮廓: 通用数据 | 绿色: 当前模块
+        </Typography>
       </Box>
 
       <Divider sx={{ mb: 3 }} />
@@ -196,7 +244,7 @@ function App() {
         value={jsonInput}
         onChange={(e) => setJsonInput(e.target.value)}
         sx={{ mb: 3 }}
-        placeholder="在此输入OCPI JSON数据，或点击'加载示例数据'按钮加载测试数据"
+        placeholder="在此输入OCPI JSON数据，或点击'加载示例数据'按钮加载版本特定的测试数据"
       />
       
       {validationResult && (
