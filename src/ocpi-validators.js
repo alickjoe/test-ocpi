@@ -1,4 +1,3 @@
-
 import { z } from 'zod';
 
 // OCPI 2.2.1-d2 Location Schema
@@ -141,6 +140,7 @@ export const LocationSchema_230 = z.object({
     city: z.string().max(45, '城市最大45位字符'),
     postal_code: z.string().max(10).optional(),
     state: z.string().max(20).optional(),
+    state: z.string().max(20).optional(),
     country: z.string().length(3, '国家代码必须为3位字符'),
     coordinates: z.object({
         latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
@@ -267,11 +267,7 @@ export const SessionSchema_221 = z.object({
     start_date_time: z.string().datetime(),
     end_date_time: z.string().datetime().optional(),
     kwh: z.number().nonnegative(),
-    cdr_token: z.object({
-        uid: z.string(),
-        type: z.enum(['RFID', 'APP_USER', 'REMOTE']),
-        contract_id: z.string().optional()
-    }),
+    cdr_token: CdrTokenSchema,
     auth_method: z.enum(['AUTH_REQUEST', 'COMMAND', 'WHITELIST']),
     authorization_reference: z.string().max(36).optional(),
     location_id: z.string().max(36),
@@ -343,7 +339,73 @@ export const SessionSchema_230 = z.object({
         discharge_allowed: z.boolean().optional()
     }).optional(),
     status: z.enum(['ACTIVE', 'COMPLETED', 'INVALID', 'PENDING', 'RESERVATION']),
-    last_updated: z.string().datetime()
+    last_updated: DateTimeSchema
+});
+
+// CDRs Schema
+export const CDRSchema = z.object({
+    country_code: CountryCodeSchema,
+    party_id: PartyIdSchema,
+    id: z.string().max(36, 'CDR ID最大36位字符'),
+    start_date_time: DateTimeSchema,
+    end_date_time: DateTimeSchema,
+    session_id: z.string().max(36).optional(),
+    cdr_token: CdrTokenSchema,
+    auth_method: z.enum(['AUTH_REQUEST', 'COMMAND', 'WHITELIST']),
+    authorization_reference: z.string().max(36).optional(),
+    cdr_location: CdrLocationSchema,
+    meter_id: z.string().max(255).optional(),
+    currency: CurrencyCodeSchema,
+    tariffs: z.array(z.object({
+        country_code: CountryCodeSchema,
+        party_id: PartyIdSchema,
+        id: z.string().max(36)
+    })).optional(),
+    charging_periods: z.array(ChargingPeriodSchema),
+    signed_data: z.object({
+        encoding_method: z.enum(['BASE64']),
+        encoding_method_version: z.number().int().optional(),
+        public_key: z.string().optional(),
+        signed_values: z.array(z.object({
+            nature: z.string().max(32),
+            plain_data: z.string().max(512),
+            signed_data: z.string().max(5000)
+        })),
+        url: z.string().url().optional()
+    }).optional(),
+    total_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }),
+    total_fixed_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }).optional(),
+    total_energy: z.number().nonnegative(),
+    total_energy_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }).optional(),
+    total_time: z.number().nonnegative(),
+    total_time_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }).optional(),
+    total_parking_time: z.number().nonnegative().optional(),
+    total_parking_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }).optional(),
+    total_reservation_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }).optional(),
+    remark: z.string().max(1000).optional(),
+    invoice_reference_id: z.string().max(39).optional(),
+    credit: z.boolean().optional(),
+    credit_reference_id: z.string().max(39).optional(),
+    home_charging_compensation: z.boolean().optional(),
+    last_updated: DateTimeSchema
 });
 
 // OCPI 2.3.0 Booking Module Schema

@@ -239,6 +239,7 @@ function App() {
         label="JSON输入"
         multiline
         rows={15}
+        rows={15}
         fullWidth
         variant="outlined"
         value={jsonInput}
@@ -264,7 +265,16 @@ function App() {
                 ❌ 验证失败
               </Typography>
               <List dense>
+              <Typography color="error" variant="h6" sx={{ mb: 2 }}>
+                ❌ 验证失败
+              </Typography>
+              <List dense>
                 {validationResult.errors.map((error, index) => (
+                  <ListItem key={index} sx={{ py: 0.5 }}>
+                    <ListItemText 
+                      primary={error}
+                      primaryTypographyProps={{ variant: 'body2', color: 'error' }}
+                    />
                   <ListItem key={index} sx={{ py: 0.5 }}>
                     <ListItemText 
                       primary={error}
