@@ -19,22 +19,25 @@ RUN npm run build
 # Production stage with nginx
 FROM nginx:alpine
 
+# Install curl for health checks
+RUN apk --no-cache add curl
+
 # Remove default nginx config
 RUN rm /etc/nginx/conf.d/default.conf
 
 # Copy custom nginx config
-COPY nginx.conf /etc/nginx/conf.d/
+COPY public/nginx.conf /etc/nginx/conf.d/
 
 # Copy built app from build stage
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Use non-root user for security
-RUN addgroup -g 1001 -S nodejs
-RUN adduser -S nextjs -u 1001
+# Create non-root user for security
+RUN addgroup -g 1001 -S nodejs && \
+    adduser -S nextjs -u 1001 -G nodejs
 
 # Change ownership of nginx directories
-RUN chown -R nextjs:nodejs /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html
-RUN chmod -R 755 /usr/share/nginx/html
+RUN chown -R nextjs:nodejs /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html && \
+    chmod -R 755 /usr/share/nginx/html
 
 # Switch to non-root user
 USER nextjs
@@ -44,7 +47,7 @@ EXPOSE 8080
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/ || exit 1
+  CMD curl -f http://localhost:8080/health || exit 1
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
