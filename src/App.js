@@ -24,6 +24,10 @@ function App() {
     <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
       <Typography variant="h4" gutterBottom>OCPI 2.2.1-d2 JSON验证工具</Typography>
       
+      <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
+        支持的模块: Locations, Sessions, CDRs, Tariffs, Tokens, Commands
+      </Typography>
+      
       <FormControl fullWidth sx={{ mb: 3 }}>
         <InputLabel>选择模块</InputLabel>
         <Select value={module} label="选择模块" onChange={(e) => setModule(e.target.value)}>
@@ -31,6 +35,12 @@ function App() {
           <MenuItem value="sessions">Sessions</MenuItem>
           <MenuItem value="cdrs">CDRs</MenuItem>
           <MenuItem value="tariffs">Tariffs</MenuItem>
+          <MenuItem value="tokens">Tokens</MenuItem>
+          <MenuItem value="commands/START_SESSION">Commands - START_SESSION</MenuItem>
+          <MenuItem value="commands/STOP_SESSION">Commands - STOP_SESSION</MenuItem>
+          <MenuItem value="commands/RESERVE_NOW">Commands - RESERVE_NOW</MenuItem>
+          <MenuItem value="commands/CANCEL_RESERVATION">Commands - CANCEL_RESERVATION</MenuItem>
+          <MenuItem value="commands/UNLOCK_CONNECTOR">Commands - UNLOCK_CONNECTOR</MenuItem>
         </Select>
       </FormControl>
       
