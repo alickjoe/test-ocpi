@@ -1,0 +1,25 @@
+version: '3.8'
+
+services:
+  ocpi-validator:
+    build: .
+    container_name: ocpi-validator
+    ports:
+      - "8080:8080"  # Map host port 8080 to container port 8080
+    restart: unless-stopped
+    environment:
+      - NODE_ENV=production
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.ocpi-validator.rule=Host(`ocpi-validator.localhost`)"
+      - "traefik.http.services.ocpi-validator.loadbalancer.server.port=8080"
+
+networks:
+  default:
+    driver: bridge
