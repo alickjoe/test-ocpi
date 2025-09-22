@@ -165,3 +165,37 @@ export const sampleStartSessionCommand = {
   "location_id": "LOC123",
   "evse_uid": "EVS123"
 };
+
+export const sampleStopSessionCommand = {
+  "response_url": "https://example.com/response",
+  "session_id": "SES123"
+};
+
+export const sampleReserveNowCommand = {
+  "response_url": "https://example.com/response",
+  "token": {
+    "uid": "TOK123",
+    "type": "RFID",
+    "auth_id": "AUTH123",
+    "issuer": "Sample Company",
+    "valid": true,
+    "whitelist": "ALLOWED",
+    "last_updated": "2024-01-15T14:30:00Z"
+  },
+  "expiry_date": "2024-01-15T16:30:00Z",
+  "reservation_id": "RES123",
+  "location_id": "LOC123",
+  "evse_uid": "EVS123"
+};
+
+export const sampleCancelReservationCommand = {
+  "response_url": "https://example.com/response",
+  "reservation_id": "RES123"
+};
+
+export const sampleUnlockConnectorCommand = {
+  "response_url": "https://example.com/response",
+  "location_id": "LOC123",
+  "evse_uid": "EVS123",
+  "connector_id": "CON123"
+};
