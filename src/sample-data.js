@@ -1,5 +1,251 @@
 // Sample OCPI test data organized by version
 
+// ============= OCPI 2.1.1-d2 Sample Data =============
+
+export const sampleData_211 = {
+  location: {
+    "id": "LOC001",
+    "type": "PARKING_LOT",
+    "name": "Amsterdam Charging Hub 2.1.1",
+    "address": "Keizersgracht 123",
+    "city": "Amsterdam",
+    "postal_code": "1015 CJ",
+    "country": "NLD",
+    "coordinates": {
+      "latitude": "52.370216",
+      "longitude": "4.895168"
+    },
+    "related_locations": [{
+      "latitude": "52.370316",
+      "longitude": "4.895268",
+      "name": {
+        "language": "en",
+        "text": "Parking entrance"
+      }
+    }],
+    "evses": [{
+      "uid": "EVS123",
+      "evse_id": "NL*ABC*E123456",
+      "status": "AVAILABLE",
+      "capabilities": ["CHARGING_PROFILE_CAPABLE", "REMOTE_START_STOP_CAPABLE", "RESERVABLE"],
+      "connectors": [{
+        "id": "CON123",
+        "standard": "IEC_62196_T2",
+        "format": "SOCKET",
+        "power_type": "AC_3_PHASE",
+        "voltage": 400,
+        "amperage": 32,
+        "tariff_id": "TAR123",
+        "last_updated": "2024-01-15T14:30:00Z"
+      }],
+      "physical_reference": "P1",
+      "directions": [{
+        "language": "en",
+        "text": "First parking spot on the left"
+      }],
+      "parking_restrictions": ["EV_ONLY"],
+      "images": [{
+        "url": "https://example.com/images/charger.jpg",
+        "thumbnail": "https://example.com/images/charger_thumb.jpg",
+        "category": "CHARGER",
+        "type": "jpeg",
+        "width": 800,
+        "height": 600
+      }],
+      "last_updated": "2024-01-15T14:30:00Z"
+    }],
+    "directions": [{
+      "language": "en",
+      "text": "Take the elevator to level -1"
+    }],
+    "operator": {
+      "name": "Green Energy Co"
+    },
+    "suboperator": {
+      "name": "Local Operator"
+    },
+    "owner": {
+      "name": "Property Owner BV"
+    },
+    "facilities": ["RESTAURANT", "WIFI", "PARKING_LOT"],
+    "time_zone": "Europe/Amsterdam",
+    "opening_times": {
+      "twentyfourseven": true
+    },
+    "charging_when_closed": false,
+    "images": [{
+      "url": "https://example.com/images/location.jpg",
+      "thumbnail": "https://example.com/images/location_thumb.jpg",
+      "category": "LOCATION",
+      "type": "jpeg",
+      "width": 800,
+      "height": 600
+    }],
+    "energy_mix": {
+      "is_green_energy": true,
+      "energy_sources": [{
+        "source": "SOLAR",
+        "percentage": 60.0
+      }, {
+        "source": "WIND",
+        "percentage": 40.0
+      }],
+      "supplier_name": "Green Energy Co",
+      "energy_product_name": "100% Renewable"
+    },
+    "last_updated": "2024-01-15T14:30:00Z"
+  },
+
+  session: {
+    "id": "SES456",
+    "start_date_time": "2024-01-15T14:30:00Z",
+    "end_date_time": "2024-01-15T15:30:00Z",
+    "kwh": 22.5,
+    "auth_id": "AUTH123",
+    "auth_method": "WHITELIST",
+    "location": {
+      "id": "LOC001",
+      "type": "PARKING_LOT",
+      "name": "Amsterdam Charging Hub",
+      "address": "Keizersgracht 123",
+      "city": "Amsterdam",
+      "postal_code": "1015 CJ",
+      "country": "NLD",
+      "coordinates": {
+        "latitude": "52.370216",
+        "longitude": "4.895168"
+      },
+      "evse_uid": "EVS123",
+      "evse_id": "NL*ABC*E123456",
+      "connector_id": "CON123",
+      "connector_standard": "IEC_62196_T2",
+      "connector_format": "SOCKET",
+      "connector_power_type": "AC_3_PHASE"
+    },
+    "meter_id": "MTR456",
+    "currency": "EUR",
+    "charging_periods": [{
+      "start_date_time": "2024-01-15T14:30:00Z",
+      "dimensions": [{
+        "type": "ENERGY",
+        "volume": 22.5
+      }, {
+        "type": "TIME",
+        "volume": 3600
+      }],
+      "tariff_id": "TAR123"
+    }],
+    "total_cost": 9.50,
+    "status": "COMPLETED",
+    "last_updated": "2024-01-15T15:30:00Z"
+  },
+
+  cdr: {
+    "id": "CDR789",
+    "start_date_time": "2024-01-15T14:30:00Z",
+    "end_date_time": "2024-01-15T15:30:00Z",
+    "auth_id": "AUTH123",
+    "auth_method": "WHITELIST",
+    "location": {
+      "id": "LOC001",
+      "name": "Amsterdam Charging Hub",
+      "address": "Keizersgracht 123",
+      "city": "Amsterdam",
+      "postal_code": "1015 CJ",
+      "country": "NLD",
+      "coordinates": {
+        "latitude": "52.370216",
+        "longitude": "4.895168"
+      },
+      "evse_uid": "EVS123",
+      "evse_id": "NL*ABC*E123456",
+      "connector_id": "CON123",
+      "connector_standard": "IEC_62196_T2",
+      "connector_format": "SOCKET",
+      "connector_power_type": "AC_3_PHASE"
+    },
+    "meter_id": "MTR456",
+    "currency": "EUR",
+    "charging_periods": [{
+      "start_date_time": "2024-01-15T14:30:00Z",
+      "dimensions": [{
+        "type": "ENERGY",
+        "volume": 22.5
+      }, {
+        "type": "TIME",
+        "volume": 3600
+      }],
+      "tariff_id": "TAR123"
+    }],
+    "total_cost": 9.50,
+    "total_energy": 22.5,
+    "total_time": 3600,
+    "last_updated": "2024-01-15T15:30:00Z"
+  },
+
+  token: {
+    "uid": "TOK456",
+    "type": "RFID",
+    "auth_id": "AUTH123",
+    "issuer": "Green Energy Co",
+    "valid": true,
+    "whitelist": "ALLOWED",
+    "language": "en",
+    "last_updated": "2024-01-15T10:00:00Z"
+  },
+
+  tariff: {
+    "id": "TAR123",
+    "currency": "EUR",
+    "tariff_alt_text": [{
+      "language": "en",
+      "text": "Standard charging rate"
+    }, {
+      "language": "nl",
+      "text": "Standaard laadtarief"
+    }],
+    "tariff_alt_url": "https://example.com/tariff-details",
+    "elements": [{
+      "price_components": [{
+        "type": "ENERGY",
+        "price": 0.42,
+        "step_size": 1
+      }, {
+        "type": "TIME",
+        "price": 0.10,
+        "step_size": 60
+      }],
+      "restrictions": {
+        "start_time": "06:00",
+        "end_time": "22:00",
+        "day_of_week": ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"]
+      }
+    }, {
+      "price_components": [{
+        "type": "ENERGY",
+        "price": 0.35,
+        "step_size": 1
+      }],
+      "restrictions": {
+        "day_of_week": ["SATURDAY", "SUNDAY"]
+      }
+    }],
+    "energy_mix": {
+      "is_green_energy": true,
+      "energy_sources": [{
+        "source": "SOLAR",
+        "percentage": 60.0
+      }, {
+        "source": "WIND",
+        "percentage": 40.0
+      }],
+      "supplier_name": "Green Energy Co",
+      "energy_product_name": "100% Renewable"
+    },
+    "last_updated": "2024-01-15T10:00:00Z"
+  }
+};
+
 // ============= OCPI 2.2.1-d2 Sample Data =============
 
 export const sampleData_221 = {
@@ -468,3 +714,10 @@ export const sampleUnlockConnectorCommand = {
   "evse_uid": "EVS123",
   "connector_id": "CON123"
 };
+
+// OCPI 2.1.1-d2 sample data exports
+export const sampleLocation_211 = sampleData_211.location;
+export const sampleSession_211 = sampleData_211.session;
+export const sampleCDR_211 = sampleData_211.cdr;
+export const sampleToken_211 = sampleData_211.token;
+export const sampleTariff_211 = sampleData_211.tariff;

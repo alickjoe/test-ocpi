@@ -12,6 +12,7 @@ import {
   sampleCancelReservationCommand,
   sampleUnlockConnectorCommand,
   sampleBooking,
+  sampleData_211,
   sampleData_221,
   sampleData_230
 } from './sample-data';
@@ -42,31 +43,56 @@ function App() {
   // Version-specific sample data mapping
   const getVersionSpecificSampleData = (module, version) => {
     const isVersion230 = version === '2.3.0';
+    const isVersion211 = version === '2.1.1-d2';
     
     // Core modules with version differences
     if (module === 'locations') {
+      if (isVersion211) return sampleData_211.location;
       return isVersion230 ? sampleData_230.location : sampleData_221.location;
     }
     if (module === 'sessions') {
+      if (isVersion211) return sampleData_211.session;
       return isVersion230 ? sampleData_230.session : sampleData_221.session;
     }
+    if (module === 'cdrs') {
+      if (isVersion211) return sampleData_211.cdr;
+      // CDR is same for 2.2.1 and 2.3.0
+      return sampleCDR;
+    }
+    if (module === 'tokens') {
+      if (isVersion211) return sampleData_211.token;
+      // Token is same for 2.2.1 and 2.3.0
+      return sampleToken;
+    }
+    if (module === 'tariffs') {
+      if (isVersion211) return sampleData_211.tariff;
+      // Tariff is same for 2.2.1 and 2.3.0
+      return sampleTariff;
+    }
     if (module === 'bookings') {
+      // Only available in 2.3.0
       return isVersion230 ? sampleData_230.booking : null;
     }
     
-    // Modules without version differences (use legacy data)
-    const legacySampleDataMap = {
-      'cdrs': sampleCDR,
-      'tariffs': sampleTariff,
-      'tokens': sampleToken,
-      'commands/START_SESSION': sampleStartSessionCommand,
-      'commands/STOP_SESSION': sampleStopSessionCommand,
-      'commands/RESERVE_NOW': sampleReserveNowCommand,
-      'commands/CANCEL_RESERVATION': sampleCancelReservationCommand,
-      'commands/UNLOCK_CONNECTOR': sampleUnlockConnectorCommand
-    };
+    // Commands are not supported in 2.1.1-d2
+    if (isVersion211 && module.startsWith('commands/')) {
+      return null;
+    }
     
-    return legacySampleDataMap[module] || null;
+    // Modules without version differences (use legacy data for 2.2.1-d2 and 2.3.0)
+    if (!isVersion211) {
+      const legacySampleDataMap = {
+        'commands/START_SESSION': sampleStartSessionCommand,
+        'commands/STOP_SESSION': sampleStopSessionCommand,
+        'commands/RESERVE_NOW': sampleReserveNowCommand,
+        'commands/CANCEL_RESERVATION': sampleCancelReservationCommand,
+        'commands/UNLOCK_CONNECTOR': sampleUnlockConnectorCommand
+      };
+      
+      return legacySampleDataMap[module] || null;
+    }
+    
+    return null;
   };
 
   // Sample data mapping (legacy compatibility)
@@ -130,7 +156,7 @@ function App() {
       <Typography variant="h4" gutterBottom>OCPI JSON验证工具</Typography>
       
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        支持的版本: OCPI 2.2.1-d2, OCPI 2.3.0 | 模块: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings
+        支持的版本: OCPI 2.1.1-d2, OCPI 2.2.1-d2, OCPI 2.3.0 | 模块: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
@@ -138,6 +164,7 @@ function App() {
           <FormControl fullWidth>
             <InputLabel>选择OCPI版本</InputLabel>
             <Select value={version} label="选择OCPI版本" onChange={(e) => setVersion(e.target.value)}>
+              <MenuItem value="2.1.1-d2">OCPI 2.1.1-d2</MenuItem>
               <MenuItem value="2.2.1-d2">OCPI 2.2.1-d2</MenuItem>
               <MenuItem value="2.3.0">OCPI 2.3.0</MenuItem>
             </Select>
@@ -152,11 +179,15 @@ function App() {
               <MenuItem value="cdrs">CDRs</MenuItem>
               <MenuItem value="tariffs">Tariffs</MenuItem>
               <MenuItem value="tokens">Tokens</MenuItem>
-              <MenuItem value="commands/START_SESSION">Commands - START_SESSION</MenuItem>
-              <MenuItem value="commands/STOP_SESSION">Commands - STOP_SESSION</MenuItem>
-              <MenuItem value="commands/RESERVE_NOW">Commands - RESERVE_NOW</MenuItem>
-              <MenuItem value="commands/CANCEL_RESERVATION">Commands - CANCEL_RESERVATION</MenuItem>
-              <MenuItem value="commands/UNLOCK_CONNECTOR">Commands - UNLOCK_CONNECTOR</MenuItem>
+              {version !== '2.1.1-d2' && (
+                <>
+                  <MenuItem value="commands/START_SESSION">Commands - START_SESSION</MenuItem>
+                  <MenuItem value="commands/STOP_SESSION">Commands - STOP_SESSION</MenuItem>
+                  <MenuItem value="commands/RESERVE_NOW">Commands - RESERVE_NOW</MenuItem>
+                  <MenuItem value="commands/CANCEL_RESERVATION">Commands - CANCEL_RESERVATION</MenuItem>
+                  <MenuItem value="commands/UNLOCK_CONNECTOR">Commands - UNLOCK_CONNECTOR</MenuItem>
+                </>
+              )}
               {version === '2.3.0' && (
                 <MenuItem value="bookings">Bookings (2.3.0)</MenuItem>
               )}
@@ -200,9 +231,12 @@ function App() {
           当前版本: {version} | 示例数据可用性 (版本特定):
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {['locations', 'sessions', 'bookings'].map((moduleKey) => {
+          {['locations', 'sessions', 'cdrs', 'tokens', 'tariffs', 'bookings'].map((moduleKey) => {
             const hasVersionSpecificData = getVersionSpecificSampleData(moduleKey, version) !== null;
             const isCurrentModule = module === moduleKey;
+            const isSupported = version !== '2.1.1-d2' || !['bookings'].includes(moduleKey);
+            
+            if (!isSupported) return null;
             
             return (
               <Chip
@@ -214,8 +248,8 @@ function App() {
               />
             );
           })}
-          {/* Show legacy modules */}
-          {Object.keys(sampleDataMap).filter(key => !['locations', 'sessions', 'bookings'].includes(key)).map((moduleKey) => {
+          {/* Show command modules only for versions that support them */}
+          {version !== '2.1.1-d2' && Object.keys(sampleDataMap).filter(key => key.startsWith('commands/')).map((moduleKey) => {
             const isCurrentModule = module === moduleKey;
             return (
               <Chip
@@ -238,7 +272,6 @@ function App() {
       <TextField
         label="JSON输入"
         multiline
-        rows={15}
         rows={15}
         fullWidth
         variant="outlined"
@@ -265,16 +298,7 @@ function App() {
                 ❌ 验证失败
               </Typography>
               <List dense>
-              <Typography color="error" variant="h6" sx={{ mb: 2 }}>
-                ❌ 验证失败
-              </Typography>
-              <List dense>
                 {validationResult.errors.map((error, index) => (
-                  <ListItem key={index} sx={{ py: 0.5 }}>
-                    <ListItemText 
-                      primary={error}
-                      primaryTypographyProps={{ variant: 'body2', color: 'error' }}
-                    />
                   <ListItem key={index} sx={{ py: 0.5 }}>
                     <ListItemText 
                       primary={error}
