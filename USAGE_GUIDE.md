@@ -1,8 +1,15 @@
-# OCPI 2.2.1-d2 JSON Validator Usage Guide
+# OCPI JSON Validator Usage Guide
+
+## Supported OCPI Versions
+
+This validator supports the following OCPI versions:
+- **OCPI 2.1.1-d2** - Basic modules (Locations, Sessions, CDRs, Tokens, Tariffs)
+- **OCPI 2.2.1-d2** - All modules including Commands
+- **OCPI 2.3.0** - All modules including enhanced features and Bookings
 
 ## How to Use the Test Data (`sample-data.js`)
 
-The application includes comprehensive sample test data for all supported OCPI 2.2.1-d2 modules. Here's how to use it:
+The application includes comprehensive sample test data for all supported OCPI versions (2.1.1-d2, 2.2.1-d2, and 2.3.0). Here's how to use it:
 
 ### 🚀 **1. Using the Web Interface (Recommended)**
 

@@ -1,223 +1,16 @@
 import { z } from 'zod';
 
-// Basic Types and Enums
-const CurrencyCodeSchema = z.string().length(3, '货币代码必须为3位字符');
-const CountryCodeSchema = z.string().length(2, '国家代码必须为2位字符');
-const PartyIdSchema = z.string().max(3, 'Party ID最大3位字符');
-const DateTimeSchema = z.string().datetime('日期时间格式不正确');
-
-// Common Enums
-const ConnectorTypeSchema = z.enum([
-    'CHADEMO', 'IEC_62196_T1', 'IEC_62196_T1_COMBO', 'IEC_62196_T2', 
-    'IEC_62196_T2_COMBO', 'IEC_62196_T3A', 'IEC_62196_T3C', 
-    'DOMESTIC_A', 'DOMESTIC_B', 'DOMESTIC_C', 'DOMESTIC_D', 
-    'DOMESTIC_E', 'DOMESTIC_F', 'DOMESTIC_G', 'DOMESTIC_H', 
-    'DOMESTIC_I', 'DOMESTIC_J', 'DOMESTIC_K', 'DOMESTIC_L', 
-    'TESLA_R', 'TESLA_S', 'GBT_AC', 'GBT_DC', 'CHAOJI'
-]);
-
-const ConnectorFormatSchema = z.enum(['SOCKET', 'CABLE']);
-const PowerTypeSchema = z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC']);
-const StatusSchema = z.enum(['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN']);
-
-// GeoLocation Schema
-const GeoLocationSchema = z.object({
-    latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
-    longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确')
-});
-
-// Additional GeoLocation Schema
-const AdditionalGeoLocationSchema = z.object({
-    latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
-    longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确'),
-    name: z.object({
-        language: z.string().length(2),
-        text: z.string()
-    }).optional()
-});
-
-// Hours Schema
-const RegularHoursSchema = z.object({
-    weekday: z.number().int().min(1).max(7),
-    period_begin: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, '时间格式不正确 (HH:MM)'),
-    period_end: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, '时间格式不正确 (HH:MM)')
-});
-
-const ExceptionalPeriodSchema = z.object({
-    period_begin: DateTimeSchema,
-    period_end: DateTimeSchema
-});
-
-const HoursSchema = z.object({
-    twentyfourseven: z.boolean(),
-    regular_hours: z.array(RegularHoursSchema).optional(),
-    exceptional_openings: z.array(ExceptionalPeriodSchema).optional(),
-    exceptional_closings: z.array(ExceptionalPeriodSchema).optional()
-});
-
-// Image Schema
-const ImageSchema = z.object({
-    url: z.string().url('URL格式不正确'),
-    thumbnail: z.string().url('缩略图URL格式不正确').optional(),
-    category: z.enum(['CHARGER', 'ENTRANCE', 'LOCATION', 'NETWORK', 'OPERATOR', 'OTHER', 'OWNER']),
-    type: z.string().max(4),
-    width: z.number().int().optional(),
-    height: z.number().int().optional()
-});
-
-// Business Details Schema
-const BusinessDetailsSchema = z.object({
-    name: z.string().max(100),
-    website: z.string().url().optional(),
-    logo: ImageSchema.optional()
-});
-
-// Energy Mix Schema
-const EnergySourceSchema = z.object({
-    source: z.enum(['NUCLEAR', 'GENERAL_FOSSIL', 'COAL', 'GAS', 'GENERAL_GREEN', 'SOLAR', 'WIND', 'WATER']),
-    percentage: z.number().min(0).max(100)
-});
-
-const EnvironmentalImpactSchema = z.object({
-    category: z.enum(['NUCLEAR_WASTE', 'CARBON_DIOXIDE']),
-    amount: z.number().nonnegative()
-});
-
-const EnergyMixSchema = z.object({
-    is_green_energy: z.boolean(),
-    energy_sources: z.array(EnergySourceSchema).optional(),
-    environ_impact: z.array(EnvironmentalImpactSchema).optional(),
-    supplier_name: z.string().max(64).optional(),
-    energy_product_name: z.string().max(64).optional()
-});
-
-// Connector Schema
-const ConnectorSchema = z.object({
-    id: z.string().max(36, 'Connector ID最大36位字符'),
-    standard: ConnectorTypeSchema,
-    format: ConnectorFormatSchema,
-    power_type: PowerTypeSchema,
-    max_voltage: z.number().int().min(0),
-    max_amperage: z.number().int().min(0),
-    max_electric_power: z.number().int().min(0).optional(),
-    tariff_ids: z.array(z.string().max(36)).optional(),
-    terms_and_conditions: z.string().url().optional(),
-    last_updated: DateTimeSchema
-});
-
-// EVSE Schema
-const EVSESchema = z.object({
-    uid: z.string().max(36, 'EVSE UID最大36位字符'),
-    evse_id: z.string().max(48).optional(),
-    status: StatusSchema,
-    status_schedule: z.array(z.object({
-        period_begin: DateTimeSchema,
-        period_end: DateTimeSchema.optional(),
-        status: StatusSchema
-    })).optional(),
-    capabilities: z.array(z.enum([
-        'CHARGING_PROFILE_CAPABLE', 'CHARGING_PREFERENCES_CAPABLE', 
-        'CHIP_CARD_SUPPORT', 'CONTACTLESS_CARD_SUPPORT', 
-        'CREDIT_CARD_PAYABLE', 'DEBIT_CARD_PAYABLE', 
-        'PED_TERMINAL', 'REMOTE_START_STOP_CAPABLE', 
-        'RESERVABLE', 'RFID_READER', 'TOKEN_GROUP_CAPABLE', 'UNLOCK_CAPABLE'
-    ])).optional(),
-    connectors: z.array(ConnectorSchema).min(1, '至少需要一个连接器'),
-    floor_level: z.string().max(4).optional(),
-    coordinates: GeoLocationSchema.optional(),
-    physical_reference: z.string().max(16).optional(),
-    directions: z.array(z.object({
-        language: z.string().length(2),
-        text: z.string().max(512)
-    })).optional(),
-    parking_restrictions: z.array(z.enum([
-        'EV_ONLY', 'PLUGGED', 'DISABLED', 'CUSTOMERS', 'MOTORCYCLES'
-    ])).optional(),
-    images: z.array(ImageSchema).optional(),
-    last_updated: DateTimeSchema
-});
-
-// Location Schema
-export const LocationSchema = z.object({
-    country_code: CountryCodeSchema,
-    party_id: PartyIdSchema,
-    id: z.string().max(36, 'Location ID最大36位字符'),
-    publish: z.boolean(),
-    publish_allowed_to: z.array(z.object({
-        uid: z.string().max(36),
-        type: z.enum(['APP_USER', 'OTHER', 'RFID']),
-        contract_id: z.string().max(36).optional()
-    })).optional(),
-    name: z.string().max(255).optional(),
-    address: z.string().max(45, '地址最大45位字符'),
-    city: z.string().max(45, '城市最大45位字符'),
-    postal_code: z.string().max(10).optional(),
-    state: z.string().max(20).optional(),
-    country: z.string().length(3, '国家代码必须为3位字符'),
-    coordinates: GeoLocationSchema,
-    related_locations: z.array(AdditionalGeoLocationSchema).optional(),
-    parking_type: z.enum(['ALONG_MOTORWAY', 'PARKING_GARAGE', 'PARKING_LOT', 'ON_DRIVEWAY', 'ON_STREET', 'UNDERGROUND_GARAGE']).optional(),
-    evses: z.array(EVSESchema).optional(),
-    directions: z.array(z.object({
-        language: z.string().length(2),
-        text: z.string().max(512)
-    })).optional(),
-    operator: BusinessDetailsSchema.optional(),
-    suboperator: BusinessDetailsSchema.optional(),
-    owner: BusinessDetailsSchema.optional(),
-    facilities: z.array(z.enum([
-        'HOTEL', 'RESTAURANT', 'CAFE', 'MALL', 'SUPERMARKET', 
-        'SPORT', 'RECREATION_AREA', 'NATURE', 'MUSEUM', 
-        'BIKE_SHARING', 'BUS_STOP', 'TAXI_STAND', 'TRAM_STOP', 
-        'METRO_STATION', 'TRAIN_STATION', 'AIRPORT', 'PARKING_LOT', 
-        'CARPOOL_PARKING', 'FUEL_STATION', 'WIFI'
-    ])).optional(),
-    time_zone: z.string(),
-    opening_times: HoursSchema.optional(),
-    charging_when_closed: z.boolean().optional(),
-    images: z.array(ImageSchema).optional(),
-    energy_mix: EnergyMixSchema.optional(),
-    last_updated: DateTimeSchema
-});
-
-// Token Schema
-const TokenSchema = z.object({
-    uid: z.string().max(36),
-    type: z.enum(['RFID', 'OTHER']),
-    auth_id: z.string().max(36),
-    visual_number: z.string().max(64).optional(),
-    issuer: z.string().max(64),
-    group_id: z.string().max(36).optional(),
-    valid: z.boolean(),
-    whitelist: z.enum(['ALWAYS', 'ALLOWED', 'ALLOWED_OFFLINE', 'NEVER']),
-    language: z.string().length(2).optional(),
-    default_profile_type: z.enum(['CHEAP', 'FAST', 'GREEN', 'REGULAR']).optional(),
-    energy_contract: z.object({
-        supplier_name: z.string().max(64),
-        contract_id: z.string().max(64).optional()
-    }).optional(),
-    last_updated: DateTimeSchema
-});
-
-
-// Charging Period Schema
-const ChargingPeriodSchema = z.object({
-    start_date_time: DateTimeSchema,
-    dimensions: z.array(z.object({
-        type: z.enum(['CURRENT', 'ENERGY', 'ENERGY_EXPORT', 'ENERGY_IMPORT', 'MAX_CURRENT', 'MIN_CURRENT', 'MAX_POWER', 'MIN_POWER', 'PARKING_TIME', 'POWER', 'RESERVATION_TIME', 'STATE_OF_CHARGE', 'TIME']),
-        volume: z.number().nonnegative()
-    })),
-    tariff_id: z.string().max(36).optional()
-});
-
-// CDR Token Schema
+// Common schemas and helpers
+const CountryCodeSchema = z.string().length(2);
+const PartyIdSchema = z.string().max(3);
+const DateTimeSchema = z.string().datetime();
+const CurrencyCodeSchema = z.string().length(3);
 const CdrTokenSchema = z.object({
     uid: z.string().max(36),
-    type: z.enum(['RFID', 'OTHER']),
+    type: z.enum(['RFID', 'APP_USER', 'REMOTE', 'OTHER']),
     contract_id: z.string().max(36).optional()
 });
 
-// CDR Location Schema
 const CdrLocationSchema = z.object({
     id: z.string().max(36),
     name: z.string().max(255).optional(),
@@ -226,22 +19,547 @@ const CdrLocationSchema = z.object({
     postal_code: z.string().max(10).optional(),
     state: z.string().max(20).optional(),
     country: z.string().length(3),
-    coordinates: GeoLocationSchema,
+    coordinates: z.object({
+        latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/),
+        longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/)
+    }),
     evse_uid: z.string().max(36),
     evse_id: z.string().max(48),
     connector_id: z.string().max(36),
-    connector_standard: ConnectorTypeSchema,
-    connector_format: ConnectorFormatSchema,
-    connector_power_type: PowerTypeSchema
+    connector_standard: z.enum(['CHADEMO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'CCS', 'TESLA_R', 'TESLA_S']),
+    connector_format: z.enum(['SOCKET', 'CABLE']),
+    connector_power_type: z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC'])
 });
 
-// Session Schema (updated)
-export const SessionSchema = z.object({
-    country_code: CountryCodeSchema,
-    party_id: PartyIdSchema,
-    id: z.string().max(36, 'Session ID最大36位字符'),
+const ChargingPeriodSchema = z.object({
+    start_date_time: DateTimeSchema,
+    dimensions: z.array(z.object({
+        type: z.enum(['CURRENT', 'ENERGY', 'ENERGY_EXPORT', 'ENERGY_IMPORT', 'MAX_CURRENT', 'MIN_CURRENT', 'MAX_POWER', 'MIN_POWER', 'PARKING_TIME', 'POWER', 'RESERVATION_TIME', 'STATE_OF_CHARGE', 'TIME']),
+        volume: z.number()
+    })),
+    tariff_id: z.string().max(36).optional()
+});
+
+// OCPI 2.1.1-d2 Location Schema
+export const LocationSchema_211 = z.object({
+    id: z.string().max(36, 'Location ID最大36位字符'),
+    type: z.enum(['ON_STREET', 'PARKING_GARAGE', 'UNDERGROUND_GARAGE', 'PARKING_LOT', 'OTHER']),
+    name: z.string().max(255, '地点名称最大255位字符').optional(),
+    address: z.string().max(45, '地址最大45位字符'),
+    city: z.string().max(45, '城市最大45位字符'),
+    postal_code: z.string().max(10).optional(),
+    country: z.string().length(3, '国家代码必须为3位字符'),
+    coordinates: z.object({
+        latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+        longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确')
+    }),
+    related_locations: z.array(z.object({
+        latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+        longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确'),
+        name: z.object({
+            language: z.string().length(2),
+            text: z.string().max(512)
+        }).optional()
+    })).optional(),
+    evses: z.array(z.object({
+        uid: z.string().max(36),
+        evse_id: z.string().max(48).optional(),
+        status: z.enum(['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN']),
+        status_schedule: z.array(z.object({
+            period_begin: DateTimeSchema,
+            period_end: DateTimeSchema.optional(),
+            status: z.enum(['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN'])
+        })).optional(),
+        capabilities: z.array(z.enum(['CHARGING_PROFILE_CAPABLE', 'CREDIT_CARD_PAYABLE', 'REMOTE_START_STOP_CAPABLE', 'RESERVABLE', 'RFID_READER', 'UNLOCK_CAPABLE'])).optional(),
+        connectors: z.array(z.object({
+            id: z.string().max(36),
+            standard: z.enum(['CHADEMO', 'DOMESTIC_A', 'DOMESTIC_B', 'DOMESTIC_C', 'DOMESTIC_D', 'DOMESTIC_E', 'DOMESTIC_F', 'DOMESTIC_G', 'DOMESTIC_H', 'DOMESTIC_I', 'DOMESTIC_J', 'DOMESTIC_K', 'DOMESTIC_L', 'IEC_60309_2_single_16', 'IEC_60309_2_three_16', 'IEC_60309_2_three_32', 'IEC_60309_2_three_64', 'IEC_62196_T1', 'IEC_62196_T1_COMBO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'IEC_62196_T3A', 'IEC_62196_T3C', 'PANTOGRAPH_BOTTOM_UP', 'PANTOGRAPH_TOP_DOWN', 'TESLA_R', 'TESLA_S']),
+            format: z.enum(['SOCKET', 'CABLE']),
+            power_type: z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC']),
+            voltage: z.number().int().optional(),
+            amperage: z.number().int().optional(),
+            tariff_id: z.string().max(36).optional(),
+            terms_and_conditions: z.string().url().optional(),
+            last_updated: DateTimeSchema
+        })),
+        physical_reference: z.string().max(16).optional(),
+        directions: z.array(z.object({
+            language: z.string().length(2),
+            text: z.string().max(512)
+        })).optional(),
+        parking_restrictions: z.array(z.enum(['EV_ONLY', 'PLUGGED', 'DISABLED', 'CUSTOMERS', 'MOTORCYCLES'])).optional(),
+        images: z.array(z.object({
+            url: z.string().url(),
+            thumbnail: z.string().url().optional(),
+            category: z.enum(['CHARGER', 'ENTRANCE', 'LOCATION', 'NETWORK', 'OPERATOR', 'OTHER', 'OWNER']),
+            type: z.string().max(4),
+            width: z.number().int().optional(),
+            height: z.number().int().optional()
+        })).optional(),
+        last_updated: DateTimeSchema
+    })),
+    directions: z.array(z.object({
+        language: z.string().length(2),
+        text: z.string().max(512)
+    })).optional(),
+    operator: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    suboperator: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    owner: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    facilities: z.array(z.enum(['HOTEL', 'RESTAURANT', 'CAFE', 'MALL', 'SUPERMARKET', 'SPORT', 'RECREATION_AREA', 'NATURE', 'MUSEUM', 'BIKE_SHARING', 'BUS_STOP', 'TAXI_STAND', 'TRAM_STOP', 'METRO_STATION', 'TRAIN_STATION', 'AIRPORT', 'PARKING_LOT', 'CARPOOL_PARKING', 'FUEL_STATION', 'WIFI'])).optional(),
+    time_zone: z.string(),
+    opening_times: z.object({
+        twentyfourseven: z.boolean(),
+        regular_hours: z.array(z.object({
+            weekday: z.number().int().min(1).max(7),
+            period_begin: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+            period_end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+        })).optional(),
+        exceptional_openings: z.array(z.object({
+            period_begin: DateTimeSchema,
+            period_end: DateTimeSchema
+        })).optional(),
+        exceptional_closings: z.array(z.object({
+            period_begin: DateTimeSchema,
+            period_end: DateTimeSchema
+        })).optional()
+    }).optional(),
+    charging_when_closed: z.boolean().optional(),
+    images: z.array(z.object({
+        url: z.string().url(),
+        thumbnail: z.string().url().optional(),
+        category: z.enum(['CHARGER', 'ENTRANCE', 'LOCATION', 'NETWORK', 'OPERATOR', 'OTHER', 'OWNER']),
+        type: z.string().max(4),
+        width: z.number().int().optional(),
+        height: z.number().int().optional()
+    })).optional(),
+    energy_mix: z.object({
+        is_green_energy: z.boolean(),
+        energy_sources: z.array(z.object({
+            source: z.enum(['NUCLEAR', 'GENERAL_FOSSIL', 'COAL', 'GAS', 'GENERAL_GREEN', 'SOLAR', 'WIND', 'WATER']),
+            percentage: z.number().min(0).max(100)
+        })).optional(),
+        environ_impact: z.array(z.object({
+            category: z.enum(['NUCLEAR_WASTE', 'CARBON_DIOXIDE']),
+            amount: z.number()
+        })).optional(),
+        supplier_name: z.string().max(64).optional(),
+        energy_product_name: z.string().max(64).optional()
+    }).optional(),
+    last_updated: DateTimeSchema
+});
+
+// OCPI 2.1.1-d2 Session Module Schema
+export const SessionSchema_211 = z.object({
+    id: z.string().max(36),
     start_date_time: DateTimeSchema,
     end_date_time: DateTimeSchema.optional(),
+    kwh: z.number().nonnegative(),
+    auth_id: z.string().max(36),
+    auth_method: z.enum(['AUTH_REQUEST', 'WHITELIST']),
+    location: z.object({
+        id: z.string().max(36),
+        type: z.enum(['ON_STREET', 'PARKING_GARAGE', 'UNDERGROUND_GARAGE', 'PARKING_LOT', 'OTHER']),
+        name: z.string().max(255).optional(),
+        address: z.string().max(45),
+        city: z.string().max(45),
+        postal_code: z.string().max(10).optional(),
+        country: z.string().length(3),
+        coordinates: z.object({
+            latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/),
+            longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/)
+        }),
+        evse_uid: z.string().max(36),
+        evse_id: z.string().max(48),
+        connector_id: z.string().max(36),
+        connector_standard: z.enum(['CHADEMO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'CCS', 'TESLA_R', 'TESLA_S']),
+        connector_format: z.enum(['SOCKET', 'CABLE']),
+        connector_power_type: z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC'])
+    }),
+    meter_id: z.string().max(255).optional(),
+    currency: z.string().length(3),
+    charging_periods: z.array(z.object({
+        start_date_time: DateTimeSchema,
+        dimensions: z.array(z.object({
+            type: z.enum(['ENERGY', 'FLAT', 'PARKING_TIME', 'TIME']),
+            volume: z.number()
+        })),
+        tariff_id: z.string().max(36).optional()
+    })).optional(),
+    total_cost: z.number().nonnegative().optional(),
+    status: z.enum(['ACTIVE', 'COMPLETED', 'INVALID', 'PENDING']),
+    last_updated: DateTimeSchema
+});
+
+// OCPI 2.1.1-d2 CDR Schema
+export const CDRSchema_211 = z.object({
+    id: z.string().max(36),
+    start_date_time: DateTimeSchema,
+    end_date_time: DateTimeSchema,
+    auth_id: z.string().max(36),
+    auth_method: z.enum(['AUTH_REQUEST', 'WHITELIST']),
+    location: z.object({
+        id: z.string().max(36),
+        name: z.string().max(255).optional(),
+        address: z.string().max(45),
+        city: z.string().max(45),
+        postal_code: z.string().max(10).optional(),
+        country: z.string().length(3),
+        coordinates: z.object({
+            latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/),
+            longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/)
+        }),
+        evse_uid: z.string().max(36),
+        evse_id: z.string().max(48),
+        connector_id: z.string().max(36),
+        connector_standard: z.enum(['CHADEMO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'CCS', 'TESLA_R', 'TESLA_S']),
+        connector_format: z.enum(['SOCKET', 'CABLE']),
+        connector_power_type: z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC'])
+    }),
+    meter_id: z.string().max(255).optional(),
+    currency: z.string().length(3),
+    charging_periods: z.array(z.object({
+        start_date_time: DateTimeSchema,
+        dimensions: z.array(z.object({
+            type: z.enum(['ENERGY', 'FLAT', 'PARKING_TIME', 'TIME']),
+            volume: z.number()
+        })),
+        tariff_id: z.string().max(36).optional()
+    })),
+    total_cost: z.number().nonnegative(),
+    total_energy: z.number().nonnegative(),
+    total_time: z.number().nonnegative(),
+    last_updated: DateTimeSchema
+});
+
+// OCPI 2.1.1-d2 Token Schema
+export const TokenSchema_211 = z.object({
+    uid: z.string().max(36),
+    type: z.enum(['RFID', 'OTHER']),
+    auth_id: z.string().max(36),
+    issuer: z.string().max(64),
+    valid: z.boolean(),
+    whitelist: z.enum(['ALWAYS', 'ALLOWED', 'ALLOWED_OFFLINE', 'NEVER']),
+    language: z.string().length(2).optional(),
+    last_updated: DateTimeSchema
+});
+
+// OCPI 2.1.1-d2 Tariff Schema
+export const TariffSchema_211 = z.object({
+    id: z.string().max(36),
+    currency: z.string().length(3),
+    tariff_alt_text: z.array(z.object({
+        language: z.string().length(2),
+        text: z.string().max(1000)
+    })).optional(),
+    tariff_alt_url: z.string().url().optional(),
+    elements: z.array(z.object({
+        price_components: z.array(z.object({
+            type: z.enum(['ENERGY', 'FLAT', 'PARKING_TIME', 'TIME']),
+            price: z.number(),
+            step_size: z.number().int()
+        })),
+        restrictions: z.object({
+            start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+            end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+            start_date: z.string().date().optional(),
+            end_date: z.string().date().optional(),
+            min_kwh: z.number().nonnegative().optional(),
+            max_kwh: z.number().nonnegative().optional(),
+            min_power: z.number().nonnegative().optional(),
+            max_power: z.number().nonnegative().optional(),
+            min_duration: z.number().int().nonnegative().optional(),
+            max_duration: z.number().int().nonnegative().optional(),
+            day_of_week: z.array(z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'])).optional()
+        }).optional()
+    })),
+    energy_mix: z.object({
+        is_green_energy: z.boolean(),
+        energy_sources: z.array(z.object({
+            source: z.enum(['NUCLEAR', 'GENERAL_FOSSIL', 'COAL', 'GAS', 'GENERAL_GREEN', 'SOLAR', 'WIND', 'WATER']),
+            percentage: z.number().min(0).max(100)
+        })).optional(),
+        environ_impact: z.array(z.object({
+            category: z.enum(['NUCLEAR_WASTE', 'CARBON_DIOXIDE']),
+            amount: z.number()
+        })).optional(),
+        supplier_name: z.string().max(64).optional(),
+        energy_product_name: z.string().max(64).optional()
+    }).optional(),
+    last_updated: DateTimeSchema
+});
+
+// OCPI 2.2.1-d2 Location Schema
+export const LocationSchema_221 = z.object({
+    country_code: z.string().length(2, '国家代码必须为2位字符'),
+    party_id: z.string().max(3, 'Party ID最大3位字符'),
+    id: z.string().max(36, 'Location ID最大36位字符'),
+    publish: z.boolean(),
+    name: z.string().max(255, '地点名称最大255位字符').optional(),
+    address: z.string().max(45, '地址最大45位字符'),
+    city: z.string().max(45, '城市最大45位字符'),
+    postal_code: z.string().max(10).optional(),
+    state: z.string().max(20).optional(),
+    country: z.string().length(3, '国家代码必须为3位字符'),
+    coordinates: z.object({
+        latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+        longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确')
+    }),
+    related_locations: z.array(z.object({
+        latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+        longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确'),
+        name: z.object({
+            language: z.string().length(2),
+            text: z.string().max(512)
+        }).optional()
+    })).optional(),
+    parking_restrictions: z.array(z.enum(['EV_ONLY', 'PLUGGED', 'DISABLED', 'CUSTOMERS', 'MOTORCYCLES'])).optional(),
+    opening_times: z.object({
+        twentyfourseven: z.boolean(),
+        regular_hours: z.array(z.object({
+            weekday: z.number().min(1).max(7),
+            period_begin: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+            period_end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+        })).optional(),
+        exceptional_openings: z.array(z.object({
+            period_begin: z.string().datetime(),
+            period_end: z.string().datetime()
+        })).optional(),
+        exceptional_closings: z.array(z.object({
+            period_begin: z.string().datetime(),
+            period_end: z.string().datetime()
+        })).optional()
+    }).optional(),
+    charging_when_closed: z.boolean().optional(),
+    images: z.array(z.object({
+        url: z.string().url(),
+        thumbnail: z.string().url().optional(),
+        category: z.enum(['CHARGER', 'ENTRANCE', 'LOCATION', 'NETWORK', 'OPERATOR', 'OTHER', 'OWNER']),
+        type: z.string().max(4),
+        width: z.number().int().optional(),
+        height: z.number().int().optional()
+    })).optional(),
+    energy_mix: z.object({
+        is_green_energy: z.boolean(),
+        energy_sources: z.array(z.object({
+            source: z.enum(['NUCLEAR', 'GENERAL_FOSSIL', 'COAL', 'GAS', 'GENERAL_GREEN', 'SOLAR', 'WIND', 'WATER']),
+            percentage: z.number().min(0).max(100)
+        })).optional(),
+        environ_impact: z.array(z.object({
+            category: z.enum(['NUCLEAR_WASTE', 'CARBON_DIOXIDE']),
+            amount: z.number()
+        })).optional(),
+        supplier_name: z.string().max(64).optional(),
+        energy_product_name: z.string().max(64).optional()
+    }).optional(),
+    directions: z.array(z.object({
+        language: z.string().length(2),
+        text: z.string().max(512)
+    })).optional(),
+    operator: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    suboperator: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    owner: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    facilities: z.array(z.enum(['HOTEL', 'RESTAURANT', 'CAFE', 'MALL', 'SUPERMARKET', 'SPORT', 'RECREATION_AREA', 'NATURE', 'MUSEUM', 'BIKE_SHARING', 'BUS_STOP', 'TAXI_STAND', 'TRAM_STOP', 'METRO_STATION', 'TRAIN_STATION', 'AIRPORT', 'PARKING_LOT', 'CARPOOL_PARKING', 'FUEL_STATION', 'WIFI'])).optional(),
+    evses: z.array(z.object({
+        uid: z.string().max(36),
+        evse_id: z.string().max(48).optional(),
+        status: z.enum(['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN']),
+        status_schedule: z.array(z.object({
+            period_begin: z.string().datetime(),
+            period_end: z.string().datetime().optional(),
+            status: z.enum(['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN'])
+        })).optional(),
+        capabilities: z.array(z.enum(['CHARGING_PROFILE_CAPABLE', 'CREDIT_CARD_PAYABLE', 'CONTACTLESS_CARD_PAYABLE', 'CREDIT_CARD_PAYABLE', 'DEBIT_CARD_PAYABLE', 'PED_TERMINAL', 'REMOTE_START_STOP_CAPABLE', 'RESERVABLE', 'RFID_READER', 'TOKEN_GROUP_CAPABLE', 'UNLOCK_CAPABLE'])).optional(),
+        connectors: z.array(z.object({
+            id: z.string().max(36),
+            standard: z.enum(['CHADEMO', 'DOMESTIC_A', 'DOMESTIC_B', 'DOMESTIC_C', 'DOMESTIC_D', 'DOMESTIC_E', 'DOMESTIC_F', 'DOMESTIC_G', 'DOMESTIC_H', 'DOMESTIC_I', 'DOMESTIC_J', 'DOMESTIC_K', 'DOMESTIC_L', 'IEC_60309_2_single_16', 'IEC_60309_2_three_16', 'IEC_60309_2_three_32', 'IEC_60309_2_three_64', 'IEC_62196_T1', 'IEC_62196_T1_COMBO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'IEC_62196_T3A', 'IEC_62196_T3C', 'PANTOGRAPH_BOTTOM_UP', 'PANTOGRAPH_TOP_DOWN', 'TESLA_R', 'TESLA_S']),
+            format: z.enum(['SOCKET', 'CABLE']),
+            power_type: z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC']),
+            max_voltage: z.number().int().optional(),
+            max_amperage: z.number().int().optional(),
+            max_electric_power: z.number().int().optional(),
+            tariff_ids: z.array(z.string().max(36)).optional(),
+            terms_and_conditions: z.string().url().optional(),
+            last_updated: z.string().datetime()
+        })),
+        floor_level: z.string().max(4).optional(),
+        coordinates: z.object({
+            latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+            longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确')
+        }).optional(),
+        physical_reference: z.string().max(16).optional(),
+        directions: z.array(z.object({
+            language: z.string().length(2),
+            text: z.string().max(512)
+        })).optional(),
+        parking_restrictions: z.array(z.enum(['EV_ONLY', 'PLUGGED', 'DISABLED', 'CUSTOMERS', 'MOTORCYCLES'])).optional(),
+        images: z.array(z.object({
+            url: z.string().url(),
+            thumbnail: z.string().url().optional(),
+            category: z.enum(['CHARGER', 'ENTRANCE', 'LOCATION', 'NETWORK', 'OPERATOR', 'OTHER', 'OWNER']),
+            type: z.string().max(4),
+            width: z.number().int().optional(),
+            height: z.number().int().optional()
+        })).optional(),
+        last_updated: z.string().datetime()
+    })),
+    time_zone: z.string(),
+    last_updated: z.string().datetime()
+});
+
+// OCPI 2.3.0 Location Schema - Enhanced with new features
+export const LocationSchema_230 = z.object({
+    country_code: z.string().length(2, '国家代码必须为2位字符'),
+    party_id: z.string().max(3, 'Party ID最大3位字符'),
+    id: z.string().max(36, 'Location ID最大36位字符'),
+    publish: z.boolean(),
+    publish_allowed_to: z.array(z.object({
+        uid: z.string().max(36),
+        type: z.enum(['APP_USER', 'RFID']),
+        contract_id: z.string().max(36)
+    })).optional(),
+    name: z.string().max(255, '地点名称最大255位字符').optional(),
+    address: z.string().max(45, '地址最大45位字符'),
+    city: z.string().max(45, '城市最大45位字符'),
+    postal_code: z.string().max(10).optional(),
+    state: z.string().max(20).optional(),
+    state: z.string().max(20).optional(),
+    country: z.string().length(3, '国家代码必须为3位字符'),
+    coordinates: z.object({
+        latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+        longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确')
+    }),
+    related_locations: z.array(z.object({
+        latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+        longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确'),
+        name: z.object({
+            language: z.string().length(2),
+            text: z.string().max(512)
+        }).optional()
+    })).optional(),
+    parking_restrictions: z.array(z.enum(['EV_ONLY', 'PLUGGED', 'DISABLED', 'CUSTOMERS', 'MOTORCYCLES'])).optional(),
+    opening_times: z.object({
+        twentyfourseven: z.boolean(),
+        regular_hours: z.array(z.object({
+            weekday: z.number().min(1).max(7),
+            period_begin: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/),
+            period_end: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/)
+        })).optional(),
+        exceptional_openings: z.array(z.object({
+            period_begin: z.string().datetime(),
+            period_end: z.string().datetime()
+        })).optional(),
+        exceptional_closings: z.array(z.object({
+            period_begin: z.string().datetime(),
+            period_end: z.string().datetime()
+        })).optional()
+    }).optional(),
+    charging_when_closed: z.boolean().optional(),
+    images: z.array(z.object({
+        url: z.string().url(),
+        thumbnail: z.string().url().optional(),
+        category: z.enum(['CHARGER', 'ENTRANCE', 'LOCATION', 'NETWORK', 'OPERATOR', 'OTHER', 'OWNER']),
+        type: z.string().max(4),
+        width: z.number().int().optional(),
+        height: z.number().int().optional()
+    })).optional(),
+    energy_mix: z.object({
+        is_green_energy: z.boolean(),
+        energy_sources: z.array(z.object({
+            source: z.enum(['NUCLEAR', 'GENERAL_FOSSIL', 'COAL', 'GAS', 'GENERAL_GREEN', 'SOLAR', 'WIND', 'WATER']),
+            percentage: z.number().min(0).max(100)
+        })).optional(),
+        environ_impact: z.array(z.object({
+            category: z.enum(['NUCLEAR_WASTE', 'CARBON_DIOXIDE']),
+            amount: z.number()
+        })).optional(),
+        supplier_name: z.string().max(64).optional(),
+        energy_product_name: z.string().max(64).optional()
+    }).optional(),
+    directions: z.array(z.object({
+        language: z.string().length(2),
+        text: z.string().max(512)
+    })).optional(),
+    operator: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    suboperator: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    owner: z.object({
+        name: z.string().max(100)
+    }).optional(),
+    facilities: z.array(z.enum(['HOTEL', 'RESTAURANT', 'CAFE', 'MALL', 'SUPERMARKET', 'SPORT', 'RECREATION_AREA', 'NATURE', 'MUSEUM', 'BUS_STOP', 'TAXI_STAND', 'TRAM_STOP', 'METRO_STATION', 'TRAIN_STATION', 'AIRPORT', 'PARKING_LOT', 'CARPOOL_PARKING', 'FUEL_STATION', 'WIFI'])).optional(),
+    // New in 2.3.0: Enhanced vehicle support
+    vehicle_types: z.array(z.enum(['CAR', 'BIKE', 'TRUCK', 'BUS', 'HDV'])).optional(),
+    max_reservation: z.number().int().optional(),
+    evses: z.array(z.object({
+        uid: z.string().max(36),
+        evse_id: z.string().max(48).optional(),
+        status: z.enum(['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN']),
+        status_schedule: z.array(z.object({
+            period_begin: z.string().datetime(),
+            period_end: z.string().datetime().optional(),
+            status: z.enum(['AVAILABLE', 'BLOCKED', 'CHARGING', 'INOPERATIVE', 'OUTOFORDER', 'PLANNED', 'REMOVED', 'RESERVED', 'UNKNOWN'])
+        })).optional(),
+        capabilities: z.array(z.enum(['CHARGING_PROFILE_CAPABLE', 'CREDIT_CARD_PAYABLE', 'CONTACTLESS_CARD_PAYABLE', 'CREDIT_CARD_PAYABLE', 'DEBIT_CARD_PAYABLE', 'PED_TERMINAL', 'REMOTE_START_STOP_CAPABLE', 'RESERVABLE', 'RFID_READER', 'TOKEN_GROUP_CAPABLE', 'UNLOCK_CAPABLE'])).optional(),
+        // New in 2.3.0: Vehicle type restrictions
+        vehicle_types: z.array(z.enum(['CAR', 'BIKE', 'TRUCK', 'BUS', 'HDV'])).optional(),
+        connectors: z.array(z.object({
+            id: z.string().max(36),
+            standard: z.enum(['CHADEMO', 'DOMESTIC_A', 'DOMESTIC_B', 'DOMESTIC_C', 'DOMESTIC_D', 'DOMESTIC_E', 'DOMESTIC_F', 'DOMESTIC_G', 'DOMESTIC_H', 'DOMESTIC_I', 'DOMESTIC_J', 'DOMESTIC_K', 'DOMESTIC_L', 'IEC_60309_2_single_16', 'IEC_60309_2_three_16', 'IEC_60309_2_three_32', 'IEC_60309_2_three_64', 'IEC_62196_T1', 'IEC_62196_T1_COMBO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'IEC_62196_T3A', 'IEC_62196_T3C', 'PANTOGRAPH_BOTTOM_UP', 'PANTOGRAPH_TOP_DOWN', 'TESLA_R', 'TESLA_S', 'GB_T_20234_2', 'GB_T_20234_3', 'CCS']),
+            format: z.enum(['SOCKET', 'CABLE']),
+            power_type: z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC']),
+            max_voltage: z.number().int().optional(),
+            max_amperage: z.number().int().optional(),
+            max_electric_power: z.number().int().optional(),
+            tariff_ids: z.array(z.string().max(36)).optional(),
+            terms_and_conditions: z.string().url().optional(),
+            last_updated: z.string().datetime()
+        })),
+        floor_level: z.string().max(4).optional(),
+        coordinates: z.object({
+            latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '纬度格式不正确'),
+            longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/, '经度格式不正确')
+        }).optional(),
+        physical_reference: z.string().max(16).optional(),
+        directions: z.array(z.object({
+            language: z.string().length(2),
+            text: z.string().max(512)
+        })).optional(),
+        parking_restrictions: z.array(z.enum(['EV_ONLY', 'PLUGGED', 'DISABLED', 'CUSTOMERS', 'MOTORCYCLES'])).optional(),
+        images: z.array(z.object({
+            url: z.string().url(),
+            thumbnail: z.string().url().optional(),
+            category: z.enum(['CHARGER', 'ENTRANCE', 'LOCATION', 'NETWORK', 'OPERATOR', 'OTHER', 'OWNER']),
+            type: z.string().max(4),
+            width: z.number().int().optional(),
+            height: z.number().int().optional()
+        })).optional(),
+        last_updated: z.string().datetime()
+    })),
+    time_zone: z.string(),
+    last_updated: z.string().datetime()
+});
+
+// OCPI 2.2.1-d2 Session Module Schema
+export const SessionSchema_221 = z.object({
+    country_code: z.string().length(2),
+    party_id: z.string().max(3),
+    id: z.string().max(36),
+    start_date_time: z.string().datetime(),
+    end_date_time: z.string().datetime().optional(),
     kwh: z.number().nonnegative(),
     cdr_token: CdrTokenSchema,
     auth_method: z.enum(['AUTH_REQUEST', 'COMMAND', 'WHITELIST']),
@@ -250,18 +568,76 @@ export const SessionSchema = z.object({
     evse_uid: z.string().max(36),
     connector_id: z.string().max(36),
     meter_id: z.string().max(255).optional(),
-    currency: CurrencyCodeSchema,
-    charging_periods: z.array(ChargingPeriodSchema).optional(),
+    currency: z.string().length(3),
+    charging_periods: z.array(z.object({
+        start_date_time: z.string().datetime(),
+        dimensions: z.array(z.object({
+            type: z.enum(['CURRENT', 'ENERGY', 'ENERGY_EXPORT', 'ENERGY_IMPORT', 'MAX_CURRENT', 'MIN_CURRENT', 'MAX_POWER', 'MIN_POWER', 'PARKING_TIME', 'POWER', 'RESERVATION_TIME', 'STATE_OF_CHARGE', 'TIME']),
+            volume: z.number()
+        })),
+        tariff_id: z.string().max(36).optional()
+    })).optional(),
     total_cost: z.object({
         excl_vat: z.number().optional(),
         incl_vat: z.number().optional()
     }).optional(),
     status: z.enum(['ACTIVE', 'COMPLETED', 'INVALID', 'PENDING', 'RESERVATION']),
+    last_updated: z.string().datetime()
+});
+
+// OCPI 2.3.0 Session Module Schema - Enhanced with new features
+export const SessionSchema_230 = z.object({
+    country_code: z.string().length(2),
+    party_id: z.string().max(3),
+    id: z.string().max(36),
+    start_date_time: z.string().datetime(),
+    end_date_time: z.string().datetime().optional(),
+    kwh: z.number().nonnegative(),
+    cdr_token: z.object({
+        uid: z.string(),
+        type: z.enum(['RFID', 'APP_USER', 'REMOTE', 'OTHER']),
+        contract_id: z.string().optional()
+    }),
+    auth_method: z.enum(['AUTH_REQUEST', 'COMMAND', 'WHITELIST']),
+    authorization_reference: z.string().max(36).optional(),
+    location_id: z.string().max(36),
+    evse_uid: z.string().max(36),
+    connector_id: z.string().max(36),
+    meter_id: z.string().max(255).optional(),
+    currency: z.string().length(3),
+    charging_periods: z.array(z.object({
+        start_date_time: z.string().datetime(),
+        dimensions: z.array(z.object({
+            type: z.enum(['CURRENT', 'ENERGY', 'ENERGY_EXPORT', 'ENERGY_IMPORT', 'MAX_CURRENT', 'MIN_CURRENT', 'MAX_POWER', 'MIN_POWER', 'PARKING_TIME', 'POWER', 'RESERVATION_TIME', 'STATE_OF_CHARGE', 'TIME']),
+            volume: z.number()
+        })),
+        tariff_id: z.string().max(36).optional()
+    })).optional(),
+    total_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }).optional(),
+    // New in 2.3.0: Vehicle information
+    vehicle_type: z.enum(['CAR', 'BIKE', 'TRUCK', 'BUS', 'HDV']).optional(),
+    vehicle_info: z.object({
+        license_plate: z.string().max(20).optional(),
+        brand: z.string().max(50).optional(),
+        model: z.string().max(50).optional(),
+        connector_type: z.enum(['CHADEMO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'GB_T_20234_2', 'GB_T_20234_3', 'CCS', 'TESLA_R', 'TESLA_S']).optional(),
+        max_charging_power: z.number().positive().optional()
+    }).optional(),
+    // New in 2.3.0: Smart charging information
+    charging_preferences: z.object({
+        departure_time: z.string().datetime().optional(),
+        energy_need: z.number().nonnegative().optional(),
+        discharge_allowed: z.boolean().optional()
+    }).optional(),
+    status: z.enum(['ACTIVE', 'COMPLETED', 'INVALID', 'PENDING', 'RESERVATION']),
     last_updated: DateTimeSchema
 });
 
-// CDRs Schema
-export const CDRSchema = z.object({
+// CDRs Schema for OCPI 2.3.0
+export const CDRSchema_230 = z.object({
     country_code: CountryCodeSchema,
     party_id: PartyIdSchema,
     id: z.string().max(36, 'CDR ID最大36位字符'),
@@ -326,47 +702,115 @@ export const CDRSchema = z.object({
     last_updated: DateTimeSchema
 });
 
-// Price Component Schema
-const PriceComponentSchema = z.object({
-    type: z.enum(['ENERGY', 'FLAT', 'PARKING_TIME', 'TIME']),
-    price: z.number().nonnegative(),
-    vat: z.number().min(0).max(100).optional(),
-    step_size: z.number().int().positive()
+// OCPI 2.3.0 Booking Module Schema
+export const BookingSchema_230 = z.object({
+    country_code: z.string().length(2),
+    party_id: z.string().max(3),
+    id: z.string().max(36, 'Booking ID最大36位字符'),
+    token: z.object({
+        uid: z.string().max(36),
+        type: z.enum(['RFID', 'OTHER']),
+        auth_id: z.string().max(36),
+        issuer: z.string().max(64),
+        valid: z.boolean(),
+        whitelist: z.enum(['ALWAYS', 'ALLOWED', 'ALLOWED_OFFLINE', 'NEVER']),
+        last_updated: z.string().datetime()
+    }),
+    location_id: z.string().max(36),
+    evse_uid: z.string().max(36),
+    connector_id: z.string().max(36).optional(),
+    start_date_time: z.string().datetime(),
+    end_date_time: z.string().datetime(),
+    booking_type: z.enum(['RESERVATION', 'BOOKING']),
+    status: z.enum(['ACCEPTED', 'REJECTED', 'EXPIRED', 'CANCELLED', 'ACTIVE', 'COMPLETED']),
+    vehicle_type: z.enum(['CAR', 'BIKE', 'TRUCK', 'BUS', 'HDV']).optional(),
+    vehicle_details: z.object({
+        license_plate: z.string().max(20).optional(),
+        brand: z.string().max(50).optional(),
+        model: z.string().max(50).optional(),
+        connector_type: z.enum(['CHADEMO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'GB_T_20234_2', 'GB_T_20234_3', 'CCS', 'TESLA_R', 'TESLA_S']).optional(),
+        max_charging_power: z.number().positive().optional()
+    }).optional(),
+    estimated_consumption: z.number().nonnegative().optional(),
+    booking_restrictions: z.array(z.enum([
+        'HDV_ONLY', 'FLEET_ONLY', 'FAST_CHARGING_ONLY'
+    ])).optional(),
+    cancellation_policy: z.object({
+        cancellation_fee: z.object({
+            excl_vat: z.number().optional(),
+            incl_vat: z.number().optional()
+        }).optional(),
+        free_cancellation_until: z.string().datetime().optional()
+    }).optional(),
+    created: z.string().datetime(),
+    last_updated: z.string().datetime()
 });
 
-// Tariff Element Schema
-const TariffElementSchema = z.object({
-    price_components: z.array(PriceComponentSchema).min(1),
-    restrictions: z.object({
-        start_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
-        end_time: z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/).optional(),
-        start_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        end_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).optional(),
-        min_kwh: z.number().nonnegative().optional(),
-        max_kwh: z.number().nonnegative().optional(),
-        min_current: z.number().nonnegative().optional(),
-        max_current: z.number().nonnegative().optional(),
-        min_power: z.number().nonnegative().optional(),
-        max_power: z.number().nonnegative().optional(),
-        min_duration: z.number().int().nonnegative().optional(),
-        max_duration: z.number().int().nonnegative().optional(),
-        day_of_week: z.array(z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'])).optional(),
-        reservation: z.enum(['RESERVATION', 'RESERVATION_EXPIRES']).optional()
-    }).optional()
+// CDR Schema for 2.2.1-d2 and 2.3.0 (same for both versions)
+export const CDRSchema = z.object({
+    country_code: z.string().length(2),
+    party_id: z.string().max(3),
+    id: z.string().max(36),
+    start_date_time: z.string().datetime(),
+    end_date_time: z.string().datetime(),
+    session_id: z.string().max(36).optional(),
+    cdr_token: z.object({
+        uid: z.string(),
+        type: z.enum(['RFID', 'APP_USER', 'REMOTE', 'OTHER']),
+        contract_id: z.string().optional()
+    }),
+    auth_method: z.enum(['AUTH_REQUEST', 'COMMAND', 'WHITELIST']),
+    authorization_reference: z.string().max(36).optional(),
+    cdr_location: z.object({
+        id: z.string().max(36),
+        name: z.string().max(255).optional(),
+        address: z.string().max(45),
+        city: z.string().max(45),
+        postal_code: z.string().max(10).optional(),
+        state: z.string().max(20).optional(),
+        country: z.string().length(3),
+        coordinates: z.object({
+            latitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/),
+            longitude: z.string().regex(/^-?[0-9]{1,2}\.[0-9]{5,7}$/)
+        }),
+        evse_uid: z.string().max(36),
+        evse_id: z.string().max(48),
+        connector_id: z.string().max(36),
+        connector_standard: z.enum(['CHADEMO', 'IEC_62196_T2', 'IEC_62196_T2_COMBO', 'CCS', 'TESLA_R', 'TESLA_S']),
+        connector_format: z.enum(['SOCKET', 'CABLE']),
+        connector_power_type: z.enum(['AC_1_PHASE', 'AC_3_PHASE', 'DC'])
+    }),
+    meter_id: z.string().max(255).optional(),
+    currency: z.string().length(3),
+    charging_periods: z.array(z.object({
+        start_date_time: z.string().datetime(),
+        dimensions: z.array(z.object({
+            type: z.enum(['CURRENT', 'ENERGY', 'ENERGY_EXPORT', 'ENERGY_IMPORT', 'MAX_CURRENT', 'MIN_CURRENT', 'MAX_POWER', 'MIN_POWER', 'PARKING_TIME', 'POWER', 'RESERVATION_TIME', 'STATE_OF_CHARGE', 'TIME']),
+            volume: z.number()
+        })),
+        tariff_id: z.string().max(36).optional()
+    })),
+    total_cost: z.object({
+        excl_vat: z.number().optional(),
+        incl_vat: z.number().optional()
+    }),
+    total_energy: z.number().nonnegative(),
+    total_time: z.number().nonnegative(),
+    last_updated: z.string().datetime()
 });
 
-// Tariffs Schema
+// Tariff Schema (same for both versions)
 export const TariffSchema = z.object({
-    country_code: CountryCodeSchema,
-    party_id: PartyIdSchema,
-    id: z.string().max(36, 'Tariff ID最大36位字符'),
-    currency: CurrencyCodeSchema,
-    type: z.enum(['AD_HOC_PAYMENT', 'PROFILE_CHEAP', 'PROFILE_FAST', 'PROFILE_GREEN', 'REGULAR']).optional(),
+    country_code: z.string().length(2),
+    party_id: z.string().max(3),
+    id: z.string().max(36),
+    currency: z.string().length(3),
+    type: z.enum(['ADHOC_PAYMENT', 'PROFILE_CHEAP', 'PROFILE_FAST', 'PROFILE_GREEN', 'REGULAR']).optional(),
     tariff_alt_text: z.array(z.object({
         language: z.string().length(2),
         text: z.string().max(1000)
     })).optional(),
-    tariff_alt_url: z.string().url().max(255).optional(),
+    tariff_alt_url: z.string().url().optional(),
     min_price: z.object({
         excl_vat: z.number().optional(),
         incl_vat: z.number().optional()
@@ -375,22 +819,75 @@ export const TariffSchema = z.object({
         excl_vat: z.number().optional(),
         incl_vat: z.number().optional()
     }).optional(),
-    elements: z.array(TariffElementSchema).min(1),
-    start_date_time: DateTimeSchema.optional(),
-    end_date_time: DateTimeSchema.optional(),
-    energy_mix: EnergyMixSchema.optional(),
-    last_updated: DateTimeSchema
+    elements: z.array(z.object({
+        price_components: z.array(z.object({
+            type: z.enum(['ENERGY', 'FLAT', 'PARKING_TIME', 'TIME']),
+            price: z.number(),
+            vat: z.number().optional(),
+            step_size: z.number().int()
+        })),
+        restrictions: z.object({
+            start_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+            end_time: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/).optional(),
+            start_date: z.string().regex(/^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$/).optional(),
+            end_date: z.string().regex(/^[0-9]{4}-[0-1][0-9]-[0-3][0-9]$/).optional(),
+            min_kwh: z.number().nonnegative().optional(),
+            max_kwh: z.number().nonnegative().optional(),
+            min_current: z.number().nonnegative().optional(),
+            max_current: z.number().nonnegative().optional(),
+            min_power: z.number().nonnegative().optional(),
+            max_power: z.number().nonnegative().optional(),
+            min_duration: z.number().int().nonnegative().optional(),
+            max_duration: z.number().int().nonnegative().optional(),
+            day_of_week: z.array(z.enum(['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'])).optional(),
+            reservation: z.enum(['RESERVATION', 'RESERVATION_EXPIRES']).optional()
+        }).optional()
+    })),
+    start_date_time: z.string().datetime().optional(),
+    end_date_time: z.string().datetime().optional(),
+    energy_mix: z.object({
+        is_green_energy: z.boolean(),
+        energy_sources: z.array(z.object({
+            source: z.enum(['NUCLEAR', 'GENERAL_FOSSIL', 'COAL', 'GAS', 'GENERAL_GREEN', 'SOLAR', 'WIND', 'WATER']),
+            percentage: z.number().min(0).max(100)
+        })).optional(),
+        environ_impact: z.array(z.object({
+            category: z.enum(['NUCLEAR_WASTE', 'CARBON_DIOXIDE']),
+            amount: z.number()
+        })).optional(),
+        supplier_name: z.string().max(64).optional(),
+        energy_product_name: z.string().max(64).optional()
+    }).optional(),
+    last_updated: z.string().datetime()
 });
 
-// Commands Schemas
+// Token Schema (same for both versions but with some differences)
+export const TokenSchema = z.object({
+    uid: z.string().max(36),
+    type: z.enum(['RFID', 'OTHER']),
+    auth_id: z.string().max(36),
+    issuer: z.string().max(64),
+    valid: z.boolean(),
+    whitelist: z.enum(['ALWAYS', 'ALLOWED', 'ALLOWED_OFFLINE', 'NEVER']),
+    language: z.string().length(2).optional(),
+    last_updated: z.string().datetime()
+});
 
+// Command Schemas (same for both versions)
 export const StartSessionCommandSchema = z.object({
     response_url: z.string().url(),
-    token: TokenSchema,
+    token: z.object({
+        uid: z.string().max(36),
+        type: z.enum(['RFID', 'OTHER']),
+        auth_id: z.string().max(36),
+        issuer: z.string().max(64),
+        valid: z.boolean(),
+        whitelist: z.enum(['ALWAYS', 'ALLOWED', 'ALLOWED_OFFLINE', 'NEVER']),
+        last_updated: z.string().datetime()
+    }),
     location_id: z.string().max(36),
-    evse_uid: z.string().max(36).optional(),
-    connector_id: z.string().max(36).optional(),
-    authorization_reference: z.string().max(36).optional()
+    evse_uid: z.string().max(36),
+    connector_id: z.string().max(36).optional()
 });
 
 export const StopSessionCommandSchema = z.object({
@@ -400,12 +897,20 @@ export const StopSessionCommandSchema = z.object({
 
 export const ReserveNowCommandSchema = z.object({
     response_url: z.string().url(),
-    token: TokenSchema,
-    expiry_date: DateTimeSchema,
+    token: z.object({
+        uid: z.string().max(36),
+        type: z.enum(['RFID', 'OTHER']),
+        auth_id: z.string().max(36),
+        issuer: z.string().max(64),
+        valid: z.boolean(),
+        whitelist: z.enum(['ALWAYS', 'ALLOWED', 'ALLOWED_OFFLINE', 'NEVER']),
+        last_updated: z.string().datetime()
+    }),
+    expiry_date: z.string().datetime(),
     reservation_id: z.string().max(36),
     location_id: z.string().max(36),
-    evse_uid: z.string().max(36).optional(),
-    authorization_reference: z.string().max(36).optional()
+    evse_uid: z.string().max(36),
+    connector_id: z.string().max(36).optional()
 });
 
 export const CancelReservationCommandSchema = z.object({
@@ -420,16 +925,21 @@ export const UnlockConnectorCommandSchema = z.object({
     connector_id: z.string().max(36)
 });
 
-// Tokens Schema (exported)
-export const TokensSchema = TokenSchema;
+// Version-specific module validators
+export const ModuleValidators_211 = {
+    locations: LocationSchema_211,
+    sessions: SessionSchema_211,
+    cdrs: CDRSchema_211,
+    tariffs: TariffSchema_211,
+    tokens: TokenSchema_211
+};
 
-// Module Validators
-export const ModuleValidators = {
-    locations: LocationSchema,
-    sessions: SessionSchema,
+export const ModuleValidators_221 = {
+    locations: LocationSchema_221,
+    sessions: SessionSchema_221,
     cdrs: CDRSchema,
     tariffs: TariffSchema,
-    tokens: TokensSchema,
+    tokens: TokenSchema,
     'commands/START_SESSION': StartSessionCommandSchema,
     'commands/STOP_SESSION': StopSessionCommandSchema,
     'commands/RESERVE_NOW': ReserveNowCommandSchema,
@@ -437,11 +947,51 @@ export const ModuleValidators = {
     'commands/UNLOCK_CONNECTOR': UnlockConnectorCommandSchema
 };
 
-// Validation Function
-export const validateOCPIJson = (module, jsonData) => {
-    const validator = ModuleValidators[module];
+export const ModuleValidators_230 = {
+    locations: LocationSchema_230,
+    sessions: SessionSchema_230,
+    bookings: BookingSchema_230,
+    cdrs: CDRSchema,
+    tariffs: TariffSchema,
+    tokens: TokenSchema,
+    'commands/START_SESSION': StartSessionCommandSchema,
+    'commands/STOP_SESSION': StopSessionCommandSchema,
+    'commands/RESERVE_NOW': ReserveNowCommandSchema,
+    'commands/CANCEL_RESERVATION': CancelReservationCommandSchema,
+    'commands/UNLOCK_CONNECTOR': UnlockConnectorCommandSchema
+};
+
+// Legacy compatibility - keeping old names but they point to 2.2.1 schemas
+export const LocationSchema = LocationSchema_221;
+export const SessionSchema = SessionSchema_221;
+
+// 验证函数
+export const validateOCPIJson = (module, jsonData, version = '2.2.1-d2') => {
+    let validator;
+    
+    // Select version-specific validators
+    if (version === '2.3.0') {
+        if (module === 'bookings') {
+            validator = BookingSchema_230;
+        } else {
+            validator = ModuleValidators_230[module];
+        }
+    } else if (version === '2.1.1-d2') {
+        // OCPI 2.1.1-d2 doesn't support all modules
+        if (['commands/START_SESSION', 'commands/STOP_SESSION', 'commands/RESERVE_NOW', 'commands/CANCEL_RESERVATION', 'commands/UNLOCK_CONNECTOR', 'bookings'].includes(module)) {
+            return { valid: false, errors: [`${module}模块在OCPI 2.1.1-d2版本中不可用`] };
+        }
+        validator = ModuleValidators_211[module];
+    } else {
+        // Default to 2.2.1-d2
+        if (module === 'bookings') {
+            return { valid: false, errors: [`Bookings模块仅在OCPI 2.3.0版本中可用`] };
+        }
+        validator = ModuleValidators_221[module];
+    }
+    
     if (!validator) {
-        return { valid: false, errors: [`不支持的模块: ${module}`] };
+        return { valid: false, errors: [`不支持的模块: ${module} (版本: ${version})`] };
     }
     
     const result = validator.safeParse(jsonData);
@@ -451,5 +1001,5 @@ export const validateOCPIJson = (module, jsonData) => {
         );
         return { valid: false, errors };
     }
-    return { valid: true, data: result.data };
+    return { valid: true, data: result.data, version };
 };
