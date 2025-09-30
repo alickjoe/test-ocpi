@@ -1,0 +1,58 @@
+{
+  "ui": {
+    "header": {
+      "title": "OCPI JSON Validation Tool",
+      "subtitle": "Supported versions: OCPI 2.1.1-d2, OCPI 2.2.1-d2, OCPI 2.3.0 | Modules: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings"
+    },
+    "form": {
+      "selectVersion": "Select OCPI Version",
+      "selectModule": "Select Module",
+      "jsonInput": "JSON Input",
+      "placeholder": "Enter OCPI JSON data here, or click 'Load Sample Data' button to load version-specific test data"
+    },
+    "indicators": {
+      "currentVersion": "Current version: {{version}} | Sample data availability (version specific):",
+      "filled": "Filled: Version-specific data",
+      "outlined": "Outlined: Generic data",
+      "current": "Green: Current module"
+    }
+  },
+  "validation": {
+    "error": {
+      "jsonFormat": "JSON format error: {{message}}",
+      "moduleNotAvailable": "{{module}} module is not available in OCPI 2.1.1-d2 version",
+      "bookingsOnly230": "Bookings module is only available in OCPI 2.3.0 version",
+      "unsupportedModule": "Unsupported module: {{module}} (version: {{version}})"
+    },
+    "success": {
+      "passed": "✅ Validation Passed!",
+      "description": "JSON data conforms to OCPI {{version}} specification"
+    },
+    "failed": "❌ Validation Failed"
+  },
+  "common": {
+    "actions": {
+      "loadSample": "Load Sample Data ({{version}})",
+      "formatJson": "Format JSON",
+      "clear": "Clear",
+      "validate": "Validate"
+    },
+    "modules": {
+      "locations": "Locations",
+      "sessions": "Sessions", 
+      "cdrs": "CDRs",
+      "tariffs": "Tariffs",
+      "tokens": "Tokens",
+      "bookings": "Bookings",
+      "commands": {
+        "START_SESSION": "Commands - START_SESSION",
+        "STOP_SESSION": "Commands - STOP_SESSION", 
+        "RESERVE_NOW": "Commands - RESERVE_NOW",
+        "CANCEL_RESERVATION": "Commands - CANCEL_RESERVATION",
+        "UNLOCK_CONNECTOR": "Commands - UNLOCK_CONNECTOR"
+      }
+    },
+    "legacy": "(legacy)",
+    "versionSpecific": "({{version}})"
+  }
+}

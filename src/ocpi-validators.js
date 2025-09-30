@@ -966,8 +966,22 @@ export const LocationSchema = LocationSchema_221;
 export const SessionSchema = SessionSchema_221;
 
 // 验证函数
-export const validateOCPIJson = (module, jsonData, version = '2.2.1-d2') => {
+export const validateOCPIJson = (module, jsonData, version = '2.2.1-d2', t = null) => {
     let validator;
+    
+    // Helper function for translations
+    const getTranslatedMessage = (key, params = {}) => {
+        if (t && typeof t === 'function') {
+            return t(key, params);
+        }
+        // Fallback messages in Chinese (original behavior)
+        const fallbacks = {
+            'validation.error.moduleNotAvailable': `${params.module}模块在OCPI 2.1.1-d2版本中不可用`,
+            'validation.error.bookingsOnly230': 'Bookings模块仅在OCPI 2.3.0版本中可用',
+            'validation.error.unsupportedModule': `不支持的模块: ${params.module} (版本: ${params.version})`
+        };
+        return fallbacks[key] || key;
+    };
     
     // Select version-specific validators
     if (version === '2.3.0') {
@@ -979,19 +993,19 @@ export const validateOCPIJson = (module, jsonData, version = '2.2.1-d2') => {
     } else if (version === '2.1.1-d2') {
         // OCPI 2.1.1-d2 doesn't support all modules
         if (['commands/START_SESSION', 'commands/STOP_SESSION', 'commands/RESERVE_NOW', 'commands/CANCEL_RESERVATION', 'commands/UNLOCK_CONNECTOR', 'bookings'].includes(module)) {
-            return { valid: false, errors: [`${module}模块在OCPI 2.1.1-d2版本中不可用`] };
+            return { valid: false, errors: [getTranslatedMessage('validation.error.moduleNotAvailable', { module })] };
         }
         validator = ModuleValidators_211[module];
     } else {
         // Default to 2.2.1-d2
         if (module === 'bookings') {
-            return { valid: false, errors: [`Bookings模块仅在OCPI 2.3.0版本中可用`] };
+            return { valid: false, errors: [getTranslatedMessage('validation.error.bookingsOnly230')] };
         }
         validator = ModuleValidators_221[module];
     }
     
     if (!validator) {
-        return { valid: false, errors: [`不支持的模块: ${module} (版本: ${version})`] };
+        return { valid: false, errors: [getTranslatedMessage('validation.error.unsupportedModule', { module, version })] };
     }
     
     const result = validator.safeParse(jsonData);
