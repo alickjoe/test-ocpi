@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useTranslation } from 'react-i18next';
 import { validateOCPIJson } from './ocpi-validators';
 import { 
   sampleLocation, 
@@ -33,8 +34,10 @@ import {
   Chip,
   Divider
 } from '@mui/material';
+import LanguageToggle from './components/LanguageToggle';
 
 function App() {
+  const { t } = useTranslation();
   const [module, setModule] = useState('locations');
   const [version, setVersion] = useState('2.2.1-d2');
   const [jsonInput, setJsonInput] = useState('');
@@ -113,12 +116,12 @@ function App() {
   const handleValidate = () => {
     try {
       const jsonData = JSON.parse(jsonInput);
-      const result = validateOCPIJson(module, jsonData, version);
+      const result = validateOCPIJson(module, jsonData, version, t);
       setValidationResult(result);
     } catch (error) {
       setValidationResult({
         valid: false,
-        errors: [`JSON格式错误: ${error.message}`]
+        errors: [t('validation.error.jsonFormat', { message: error.message })]
       });
     }
   };
@@ -146,24 +149,25 @@ function App() {
     } catch (error) {
       setValidationResult({
         valid: false,
-        errors: [`JSON格式错误: ${error.message}`]
+        errors: [t('validation.error.jsonFormat', { message: error.message })]
       });
     }
   };
 
   return (
     <Box sx={{ p: 4, maxWidth: 1200, mx: 'auto' }}>
-      <Typography variant="h4" gutterBottom>OCPI JSON验证工具</Typography>
+      <LanguageToggle />
+      <Typography variant="h4" gutterBottom>{t('ui.header.title')}</Typography>
       
       <Typography variant="body2" color="text.secondary" sx={{ mb: 2 }}>
-        支持的版本: OCPI 2.1.1-d2, OCPI 2.2.1-d2, OCPI 2.3.0 | 模块: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings
+        {t('ui.header.subtitle')}
       </Typography>
 
       <Grid container spacing={2} sx={{ mb: 3 }}>
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
-            <InputLabel>选择OCPI版本</InputLabel>
-            <Select value={version} label="选择OCPI版本" onChange={(e) => setVersion(e.target.value)}>
+            <InputLabel>{t('ui.form.selectVersion')}</InputLabel>
+            <Select value={version} label={t('ui.form.selectVersion')} onChange={(e) => setVersion(e.target.value)}>
               <MenuItem value="2.1.1-d2">OCPI 2.1.1-d2</MenuItem>
               <MenuItem value="2.2.1-d2">OCPI 2.2.1-d2</MenuItem>
               <MenuItem value="2.3.0">OCPI 2.3.0</MenuItem>
@@ -172,24 +176,24 @@ function App() {
         </Grid>
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
-            <InputLabel>选择模块</InputLabel>
-            <Select value={module} label="选择模块" onChange={(e) => setModule(e.target.value)}>
-              <MenuItem value="locations">Locations</MenuItem>
-              <MenuItem value="sessions">Sessions</MenuItem>
-              <MenuItem value="cdrs">CDRs</MenuItem>
-              <MenuItem value="tariffs">Tariffs</MenuItem>
-              <MenuItem value="tokens">Tokens</MenuItem>
+            <InputLabel>{t('ui.form.selectModule')}</InputLabel>
+            <Select value={module} label={t('ui.form.selectModule')} onChange={(e) => setModule(e.target.value)}>
+              <MenuItem value="locations">{t('common.modules.locations')}</MenuItem>
+              <MenuItem value="sessions">{t('common.modules.sessions')}</MenuItem>
+              <MenuItem value="cdrs">{t('common.modules.cdrs')}</MenuItem>
+              <MenuItem value="tariffs">{t('common.modules.tariffs')}</MenuItem>
+              <MenuItem value="tokens">{t('common.modules.tokens')}</MenuItem>
               {version !== '2.1.1-d2' && (
                 <>
-                  <MenuItem value="commands/START_SESSION">Commands - START_SESSION</MenuItem>
-                  <MenuItem value="commands/STOP_SESSION">Commands - STOP_SESSION</MenuItem>
-                  <MenuItem value="commands/RESERVE_NOW">Commands - RESERVE_NOW</MenuItem>
-                  <MenuItem value="commands/CANCEL_RESERVATION">Commands - CANCEL_RESERVATION</MenuItem>
-                  <MenuItem value="commands/UNLOCK_CONNECTOR">Commands - UNLOCK_CONNECTOR</MenuItem>
+                  <MenuItem value="commands/START_SESSION">{t('common.modules.commands.START_SESSION')}</MenuItem>
+                  <MenuItem value="commands/STOP_SESSION">{t('common.modules.commands.STOP_SESSION')}</MenuItem>
+                  <MenuItem value="commands/RESERVE_NOW">{t('common.modules.commands.RESERVE_NOW')}</MenuItem>
+                  <MenuItem value="commands/CANCEL_RESERVATION">{t('common.modules.commands.CANCEL_RESERVATION')}</MenuItem>
+                  <MenuItem value="commands/UNLOCK_CONNECTOR">{t('common.modules.commands.UNLOCK_CONNECTOR')}</MenuItem>
                 </>
               )}
               {version === '2.3.0' && (
-                <MenuItem value="bookings">Bookings (2.3.0)</MenuItem>
+                <MenuItem value="bookings">{t('common.modules.bookings')} (2.3.0)</MenuItem>
               )}
             </Select>
           </FormControl>
@@ -205,22 +209,22 @@ function App() {
             onClick={loadSampleData}
             disabled={!getVersionSpecificSampleData(module, version) && !sampleDataMap[module]}
           >
-            加载示例数据 ({version})
+            {t('common.actions.loadSample', { version })}
           </Button>
         </Grid>
         <Grid item>
           <Button variant="outlined" onClick={formatJson} disabled={!jsonInput}>
-            格式化JSON
+            {t('common.actions.formatJson')}
           </Button>
         </Grid>
         <Grid item>
           <Button variant="outlined" color="warning" onClick={clearInput}>
-            清空
+            {t('common.actions.clear')}
           </Button>
         </Grid>
         <Grid item>
           <Button variant="contained" color="primary" onClick={handleValidate} disabled={!jsonInput}>
-            验证
+            {t('common.actions.validate')}
           </Button>
         </Grid>
       </Grid>
@@ -228,7 +232,7 @@ function App() {
       {/* Version and Sample Data Availability Indicator */}
       <Box sx={{ mb: 2 }}>
         <Typography variant="body2" color="text.secondary" sx={{ mb: 1 }}>
-          当前版本: {version} | 示例数据可用性 (版本特定):
+          {t('ui.indicators.currentVersion', { version })}
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
           {['locations', 'sessions', 'cdrs', 'tokens', 'tariffs', 'bookings'].map((moduleKey) => {
@@ -241,7 +245,7 @@ function App() {
             return (
               <Chip
                 key={moduleKey}
-                label={`${moduleKey} (${version})`}
+                label={`${t('common.modules.' + moduleKey)} ${t('common.versionSpecific', { version })}`}
                 size="small"
                 color={isCurrentModule ? "primary" : "default"}
                 variant={hasVersionSpecificData ? "filled" : "outlined"}
@@ -254,7 +258,7 @@ function App() {
             return (
               <Chip
                 key={moduleKey}
-                label={`${moduleKey} (legacy)`}
+                label={`${t('common.modules.commands.' + moduleKey.split('/')[1])} ${t('common.legacy')}`}
                 size="small"
                 color={isCurrentModule ? "primary" : "default"}
                 variant="outlined"
@@ -263,14 +267,14 @@ function App() {
           })}
         </Box>
         <Typography variant="caption" color="text.secondary" sx={{ mt: 1, display: 'block' }}>
-          填充: 版本特定数据 | 轮廓: 通用数据 | 绿色: 当前模块
+          {t('ui.indicators.filled')} | {t('ui.indicators.outlined')} | {t('ui.indicators.current')}
         </Typography>
       </Box>
 
       <Divider sx={{ mb: 3 }} />
       
       <TextField
-        label="JSON输入"
+        label={t('ui.form.jsonInput')}
         multiline
         rows={15}
         fullWidth
@@ -278,7 +282,7 @@ function App() {
         value={jsonInput}
         onChange={(e) => setJsonInput(e.target.value)}
         sx={{ mb: 3 }}
-        placeholder="在此输入OCPI JSON数据，或点击'加载示例数据'按钮加载版本特定的测试数据"
+        placeholder={t('ui.form.placeholder')}
       />
       
       {validationResult && (
@@ -286,16 +290,16 @@ function App() {
           {validationResult.valid ? (
             <>
               <Typography color="primary" variant="h6" sx={{ mb: 2 }}>
-                ✅ 验证通过！
+                {t('validation.success.passed')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
-                JSON数据符合OCPI {version}规范
+                {t('validation.success.description', { version })}
               </Typography>
             </>
           ) : (
             <>
               <Typography color="error" variant="h6" sx={{ mb: 2 }}>
-                ❌ 验证失败
+                {t('validation.failed')}
               </Typography>
               <List dense>
                 {validationResult.errors.map((error, index) => (
