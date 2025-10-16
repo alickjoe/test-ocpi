@@ -32,16 +32,21 @@ COPY public/nginx.conf /etc/nginx/conf.d/
 # Copy built app from build stage
 COPY --from=build /app/build /usr/share/nginx/html
 
-# Create non-root user for security
-RUN addgroup -g 1001 -S nodejs && \
-    adduser -S nextjs -u 1001 -G nodejs
+# Create necessary directories and set permissions for nginx to run as non-root
+RUN mkdir -p /var/cache/nginx/client_temp \
+    /var/cache/nginx/proxy_temp \
+    /var/cache/nginx/fastcgi_temp \
+    /var/cache/nginx/uwsgi_temp \
+    /var/cache/nginx/scgi_temp \
+    /var/run \
+    /var/log/nginx && \
+    chown -R nginx:nginx /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html && \
+    chmod -R 755 /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html && \
+    touch /var/run/nginx.pid && \
+    chown nginx:nginx /var/run/nginx.pid
 
-# Change ownership of nginx directories
-RUN chown -R nextjs:nodejs /var/cache/nginx /var/run /var/log/nginx /usr/share/nginx/html && \
-    chmod -R 755 /usr/share/nginx/html
-
-# Switch to non-root user
-USER nextjs
+# Switch to non-root nginx user
+USER nginx
 
 # Expose port 8080 instead of 80 to avoid conflicts
 EXPOSE 3002
