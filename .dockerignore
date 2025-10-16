@@ -13,3 +13,5 @@ README.md
 .env.production.local
 coverage
 build
+*.md
+.qoder

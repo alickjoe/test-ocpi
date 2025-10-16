@@ -43,11 +43,11 @@ RUN chown -R nextjs:nodejs /var/cache/nginx /var/run /var/log/nginx /usr/share/n
 USER nextjs
 
 # Expose port 8080 instead of 80 to avoid conflicts
-EXPOSE 8080
+EXPOSE 3002
 
 # Health check
 HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
-  CMD curl -f http://localhost:8080/health || exit 1
+  CMD curl -f http://localhost:3002/health || exit 1
 
 # Start nginx
 CMD ["nginx", "-g", "daemon off;"]
