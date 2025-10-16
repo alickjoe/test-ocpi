@@ -7,8 +7,9 @@ WORKDIR /app
 # Copy package files first for better caching
 COPY package*.json ./
 
-# Install dependencies
-RUN npm ci --only=production
+# Install dependencies with legacy peer deps to resolve TypeScript version conflicts
+# react-scripts@5.0.1 requires typescript ^3.2.1 || ^4, but i18next requires ^5
+RUN npm ci --legacy-peer-deps
 
 # Copy source code
 COPY . .
