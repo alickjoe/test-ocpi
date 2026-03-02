@@ -8,7 +8,7 @@ services:
       - "3002:3002"  # Map host port 8080 to container port 8080
     restart: unless-stopped
     networks:
-      mynetwork:
+      aznetwork:
         aliases:
           - ocpi-validator
     environment:
@@ -25,6 +25,6 @@ services:
       - "traefik.http.services.ocpi-validator.loadbalancer.server.port=3002"
 
 networks:
-  mynetwork:
+  aznetwork:
     name: mynetwork
-    driver: bridge
+    external: true
