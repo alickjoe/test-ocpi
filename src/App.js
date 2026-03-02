@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useTranslation } from 'react-i18next';
 import { validateOCPIJson } from './ocpi-validators';
 import { 
@@ -42,6 +42,22 @@ function App() {
   const [version, setVersion] = useState('2.2.1-d2');
   const [jsonInput, setJsonInput] = useState('');
   const [validationResult, setValidationResult] = useState(null);
+
+  // Reset module when version changes to ensure compatibility
+  useEffect(() => {
+    // If current module is a command and version is 2.1.1-d2, reset to locations
+    if (version === '2.1.1-d2' && module.startsWith('commands/')) {
+      setModule('locations');
+      setJsonInput('');
+      setValidationResult(null);
+    }
+    // If current module is bookings and version is not 2.3.0, reset to locations
+    if (version !== '2.3.0' && module === 'bookings') {
+      setModule('locations');
+      setJsonInput('');
+      setValidationResult(null);
+    }
+  }, [version]);
 
   // Version-specific sample data mapping
   const getVersionSpecificSampleData = (module, version) => {
@@ -177,21 +193,29 @@ function App() {
         <Grid item xs={12} md={6}>
           <FormControl fullWidth>
             <InputLabel>{t('ui.form.selectModule')}</InputLabel>
-            <Select value={module} label={t('ui.form.selectModule')} onChange={(e) => setModule(e.target.value)}>
+            <Select 
+              value={module} 
+              label={t('ui.form.selectModule')} 
+              onChange={(e) => {
+                const newModule = e.target.value;
+                console.log('Module selected:', newModule);
+                setModule(newModule);
+                setJsonInput('');
+                setValidationResult(null);
+              }}
+            >
               <MenuItem value="locations">{t('common.modules.locations')}</MenuItem>
               <MenuItem value="sessions">{t('common.modules.sessions')}</MenuItem>
               <MenuItem value="cdrs">{t('common.modules.cdrs')}</MenuItem>
               <MenuItem value="tariffs">{t('common.modules.tariffs')}</MenuItem>
               <MenuItem value="tokens">{t('common.modules.tokens')}</MenuItem>
-              {version !== '2.1.1-d2' && (
-                <>
-                  <MenuItem value="commands/START_SESSION">{t('common.modules.commands.START_SESSION')}</MenuItem>
-                  <MenuItem value="commands/STOP_SESSION">{t('common.modules.commands.STOP_SESSION')}</MenuItem>
-                  <MenuItem value="commands/RESERVE_NOW">{t('common.modules.commands.RESERVE_NOW')}</MenuItem>
-                  <MenuItem value="commands/CANCEL_RESERVATION">{t('common.modules.commands.CANCEL_RESERVATION')}</MenuItem>
-                  <MenuItem value="commands/UNLOCK_CONNECTOR">{t('common.modules.commands.UNLOCK_CONNECTOR')}</MenuItem>
-                </>
-              )}
+              {version !== '2.1.1-d2' && [
+                <MenuItem key="cmd-start" value="commands/START_SESSION">{t('common.modules.commands.START_SESSION')}</MenuItem>,
+                <MenuItem key="cmd-stop" value="commands/STOP_SESSION">{t('common.modules.commands.STOP_SESSION')}</MenuItem>,
+                <MenuItem key="cmd-reserve" value="commands/RESERVE_NOW">{t('common.modules.commands.RESERVE_NOW')}</MenuItem>,
+                <MenuItem key="cmd-cancel" value="commands/CANCEL_RESERVATION">{t('common.modules.commands.CANCEL_RESERVATION')}</MenuItem>,
+                <MenuItem key="cmd-unlock" value="commands/UNLOCK_CONNECTOR">{t('common.modules.commands.UNLOCK_CONNECTOR')}</MenuItem>
+              ]}
               {version === '2.3.0' && (
                 <MenuItem value="bookings">{t('common.modules.bookings')} (2.3.0)</MenuItem>
               )}
