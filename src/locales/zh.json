@@ -22,13 +22,17 @@
       "jsonFormat": "JSON格式错误: {{message}}",
       "moduleNotAvailable": "{{module}}模块在OCPI 2.1.1-d2版本中不可用",
       "bookingsOnly230": "Bookings模块仅在OCPI 2.3.0版本中可用",
-      "unsupportedModule": "不支持的模块: {{module}} (版本: {{version}})"
+      "unsupportedModule": "不支持的模块: {{module}} (版本: {{version}})",
+      "emptyArray": "JSON数组为空",
+      "notObjectOrArray": "JSON必须是对象或对象数组"
     },
     "success": {
       "passed": "✅ 验证通过！",
+      "passedArray": "✅ 验证通过！({{count}} 项)",
       "description": "JSON数据符合OCPI {{version}}规范"
     },
-    "failed": "❌ 验证失败"
+    "failed": "❌ 验证失败",
+    "failedArray": "❌ 验证失败 ({{passed}}/{{total}} 项通过)"
   },
   "common": {
     "actions": {

@@ -155,8 +155,55 @@ function App() {
   const handleValidate = () => {
     try {
       const jsonData = JSON.parse(jsonInput);
-      const result = validateOCPIJson(module, jsonData, version, t);
-      setValidationResult(result);
+
+      if (Array.isArray(jsonData)) {
+        if (jsonData.length === 0) {
+          setValidationResult({
+            valid: false,
+            errors: [t('validation.error.emptyArray')]
+          });
+          return;
+        }
+        const allErrors = [];
+        let passCount = 0;
+        jsonData.forEach((item, index) => {
+          const result = validateOCPIJson(module, item, version, t);
+          if (result.valid) {
+            passCount++;
+          } else {
+            result.errors.forEach(err => {
+              allErrors.push(`[${index}] ${err}`);
+            });
+          }
+        });
+        if (allErrors.length === 0) {
+          setValidationResult({
+            valid: true,
+            data: jsonData,
+            version,
+            count: jsonData.length
+          });
+        } else {
+          setValidationResult({
+            valid: false,
+            errors: allErrors,
+            passed: passCount,
+            total: jsonData.length
+          });
+        }
+        return;
+      }
+
+      if (typeof jsonData === 'object' && jsonData !== null) {
+        const result = validateOCPIJson(module, jsonData, version, t);
+        setValidationResult(result);
+        return;
+      }
+
+      setValidationResult({
+        valid: false,
+        errors: [t('validation.error.notObjectOrArray')]
+      });
     } catch (error) {
       setValidationResult({
         valid: false,
@@ -342,7 +389,9 @@ function App() {
           {validationResult.valid ? (
             <>
               <Typography color="primary" variant="h6" sx={{ mb: 2 }}>
-                {t('validation.success.passed')}
+                {validationResult.count !== undefined
+                  ? t('validation.success.passedArray', { count: validationResult.count })
+                  : t('validation.success.passed')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {t('validation.success.description', { version })}
@@ -351,7 +400,9 @@ function App() {
           ) : (
             <>
               <Typography color="error" variant="h6" sx={{ mb: 2 }}>
-                {t('validation.failed')}
+                {validationResult.passed !== undefined
+                  ? t('validation.failedArray', { passed: validationResult.passed, total: validationResult.total })
+                  : t('validation.failed')}
               </Typography>
               <List dense>
                 {validationResult.errors.map((error, index) => (
