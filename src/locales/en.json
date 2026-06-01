@@ -2,7 +2,7 @@
   "ui": {
     "header": {
       "title": "OCPI JSON Validation Tool",
-      "subtitle": "Supported versions: OCPI 2.1.1-d2, OCPI 2.2.1-d2, OCPI 2.3.0 | Modules: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings"
+      "subtitle": "Supported versions: OCPI 2.1.1-d2, OCPI 2.2.1-d2, OCPI 2.3.0 | Modules: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings, Credentials, Versions, ChargingProfiles, HubClientInfo, Payments"
     },
     "form": {
       "selectVersion": "Select OCPI Version",
@@ -44,6 +44,11 @@
       "tariffs": "Tariffs",
       "tokens": "Tokens",
       "bookings": "Bookings",
+      "credentials": "Credentials",
+      "versions": "Versions",
+      "chargingprofiles": "ChargingProfiles",
+      "hubclientinfo": "HubClientInfo",
+      "payments": "Payments",
       "commands": {
         "START_SESSION": "Commands - START_SESSION",
         "STOP_SESSION": "Commands - STOP_SESSION", 
