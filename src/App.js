@@ -13,6 +13,11 @@ import {
   sampleCancelReservationCommand,
   sampleUnlockConnectorCommand,
   sampleBooking,
+  sampleCredentials,
+  sampleVersionDetails,
+  sampleChargingProfile,
+  sampleHubClientInfo,
+  samplePayment,
   sampleData_211,
   sampleData_221,
   sampleData_230
@@ -52,7 +57,8 @@ function App() {
       setValidationResult(null);
     }
     // If current module is bookings and version is not 2.3.0, reset to locations
-    if (version !== '2.3.0' && module === 'bookings') {
+    const v230OnlyModules = ['bookings', 'credentials', 'versions', 'chargingprofiles', 'hubclientinfo', 'payments'];
+    if (version !== '2.3.0' && v230OnlyModules.includes(module)) {
       setModule('locations');
       setJsonInput('');
       setValidationResult(null);
@@ -93,6 +99,18 @@ function App() {
       return isVersion230 ? sampleData_230.booking : null;
     }
     
+    // New OCPI 2.3.0 modules (only available in 2.3.0)
+    const new230Modules = {
+      'credentials': sampleData_230.credentials,
+      'versions': sampleData_230.versions,
+      'chargingprofiles': sampleData_230.chargingprofiles,
+      'hubclientinfo': sampleData_230.hubclientinfo,
+      'payments': sampleData_230.payments
+    };
+    if (new230Modules[module]) {
+      return isVersion230 ? new230Modules[module] : null;
+    }
+    
     // Commands are not supported in 2.1.1-d2
     if (isVersion211 && module.startsWith('commands/')) {
       return null;
@@ -126,14 +144,66 @@ function App() {
     'commands/RESERVE_NOW': sampleReserveNowCommand,
     'commands/CANCEL_RESERVATION': sampleCancelReservationCommand,
     'commands/UNLOCK_CONNECTOR': sampleUnlockConnectorCommand,
-    'bookings': sampleBooking
+    'bookings': sampleBooking,
+    'credentials': sampleCredentials,
+    'versions': sampleVersionDetails,
+    'chargingprofiles': sampleChargingProfile,
+    'hubclientinfo': sampleHubClientInfo,
+    'payments': samplePayment
   };
 
   const handleValidate = () => {
     try {
       const jsonData = JSON.parse(jsonInput);
-      const result = validateOCPIJson(module, jsonData, version, t);
-      setValidationResult(result);
+
+      if (Array.isArray(jsonData)) {
+        if (jsonData.length === 0) {
+          setValidationResult({
+            valid: false,
+            errors: [t('validation.error.emptyArray')]
+          });
+          return;
+        }
+        const allErrors = [];
+        let passCount = 0;
+        jsonData.forEach((item, index) => {
+          const result = validateOCPIJson(module, item, version, t);
+          if (result.valid) {
+            passCount++;
+          } else {
+            result.errors.forEach(err => {
+              allErrors.push(`[${index}] ${err}`);
+            });
+          }
+        });
+        if (allErrors.length === 0) {
+          setValidationResult({
+            valid: true,
+            data: jsonData,
+            version,
+            count: jsonData.length
+          });
+        } else {
+          setValidationResult({
+            valid: false,
+            errors: allErrors,
+            passed: passCount,
+            total: jsonData.length
+          });
+        }
+        return;
+      }
+
+      if (typeof jsonData === 'object' && jsonData !== null) {
+        const result = validateOCPIJson(module, jsonData, version, t);
+        setValidationResult(result);
+        return;
+      }
+
+      setValidationResult({
+        valid: false,
+        errors: [t('validation.error.notObjectOrArray')]
+      });
     } catch (error) {
       setValidationResult({
         valid: false,
@@ -216,9 +286,14 @@ function App() {
                 <MenuItem key="cmd-cancel" value="commands/CANCEL_RESERVATION">{t('common.modules.commands.CANCEL_RESERVATION')}</MenuItem>,
                 <MenuItem key="cmd-unlock" value="commands/UNLOCK_CONNECTOR">{t('common.modules.commands.UNLOCK_CONNECTOR')}</MenuItem>
               ]}
-              {version === '2.3.0' && (
-                <MenuItem value="bookings">{t('common.modules.bookings')} (2.3.0)</MenuItem>
-              )}
+              {version === '2.3.0' && [
+                <MenuItem key="bookings" value="bookings">{t('common.modules.bookings')}</MenuItem>,
+                <MenuItem key="credentials" value="credentials">{t('common.modules.credentials')}</MenuItem>,
+                <MenuItem key="versions" value="versions">{t('common.modules.versions')}</MenuItem>,
+                <MenuItem key="chargingprofiles" value="chargingprofiles">{t('common.modules.chargingprofiles')}</MenuItem>,
+                <MenuItem key="hubclientinfo" value="hubclientinfo">{t('common.modules.hubclientinfo')}</MenuItem>,
+                <MenuItem key="payments" value="payments">{t('common.modules.payments')}</MenuItem>
+              ]}
             </Select>
           </FormControl>
         </Grid>
@@ -259,10 +334,10 @@ function App() {
           {t('ui.indicators.currentVersion', { version })}
         </Typography>
         <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
-          {['locations', 'sessions', 'cdrs', 'tokens', 'tariffs', 'bookings'].map((moduleKey) => {
+          {['locations', 'sessions', 'cdrs', 'tokens', 'tariffs', 'bookings', 'credentials', 'versions', 'chargingprofiles', 'hubclientinfo', 'payments'].map((moduleKey) => {
             const hasVersionSpecificData = getVersionSpecificSampleData(moduleKey, version) !== null;
             const isCurrentModule = module === moduleKey;
-            const isSupported = version !== '2.1.1-d2' || !['bookings'].includes(moduleKey);
+            const isSupported = version === '2.3.0' || (version !== '2.1.1-d2' || !['bookings', 'credentials', 'versions', 'chargingprofiles', 'hubclientinfo', 'payments'].includes(moduleKey));
             
             if (!isSupported) return null;
             
@@ -314,7 +389,9 @@ function App() {
           {validationResult.valid ? (
             <>
               <Typography color="primary" variant="h6" sx={{ mb: 2 }}>
-                {t('validation.success.passed')}
+                {validationResult.count !== undefined
+                  ? t('validation.success.passedArray', { count: validationResult.count })
+                  : t('validation.success.passed')}
               </Typography>
               <Typography variant="body2" color="text.secondary">
                 {t('validation.success.description', { version })}
@@ -323,7 +400,9 @@ function App() {
           ) : (
             <>
               <Typography color="error" variant="h6" sx={{ mb: 2 }}>
-                {t('validation.failed')}
+                {validationResult.passed !== undefined
+                  ? t('validation.failedArray', { passed: validationResult.passed, total: validationResult.total })
+                  : t('validation.failed')}
               </Typography>
               <List dense>
                 {validationResult.errors.map((error, index) => (

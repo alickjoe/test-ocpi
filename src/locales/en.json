@@ -2,7 +2,7 @@
   "ui": {
     "header": {
       "title": "OCPI JSON Validation Tool",
-      "subtitle": "Supported versions: OCPI 2.1.1-d2, OCPI 2.2.1-d2, OCPI 2.3.0 | Modules: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings"
+      "subtitle": "Supported versions: OCPI 2.1.1-d2, OCPI 2.2.1-d2, OCPI 2.3.0 | Modules: Locations, Sessions, CDRs, Tariffs, Tokens, Commands, Bookings, Credentials, Versions, ChargingProfiles, HubClientInfo, Payments"
     },
     "form": {
       "selectVersion": "Select OCPI Version",
@@ -22,13 +22,18 @@
       "jsonFormat": "JSON format error: {{message}}",
       "moduleNotAvailable": "{{module}} module is not available in OCPI 2.1.1-d2 version",
       "bookingsOnly230": "Bookings module is only available in OCPI 2.3.0 version",
-      "unsupportedModule": "Unsupported module: {{module}} (version: {{version}})"
+      "unsupportedModule": "Unsupported module: {{module}} (version: {{version}})",
+      "emptyArray": "JSON array is empty",
+      "notObjectOrArray": "JSON must be an object or an array of objects"
     },
     "success": {
       "passed": "✅ Validation Passed!",
+      "passedArray": "✅ Validation Passed! ({{count}} item)",
+      "passedArray_plural": "✅ Validation Passed! ({{count}} items)",
       "description": "JSON data conforms to OCPI {{version}} specification"
     },
-    "failed": "❌ Validation Failed"
+    "failed": "❌ Validation Failed",
+    "failedArray": "❌ Validation Failed ({{passed}}/{{total}} items passed)"
   },
   "common": {
     "actions": {
@@ -44,6 +49,11 @@
       "tariffs": "Tariffs",
       "tokens": "Tokens",
       "bookings": "Bookings",
+      "credentials": "Credentials",
+      "versions": "Versions",
+      "chargingprofiles": "ChargingProfiles",
+      "hubclientinfo": "HubClientInfo",
+      "payments": "Payments",
       "commands": {
         "START_SESSION": "Commands - START_SESSION",
         "STOP_SESSION": "Commands - STOP_SESSION", 

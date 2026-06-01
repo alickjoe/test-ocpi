@@ -59,7 +59,8 @@ export const sampleData_211 = {
       "text": "Take the elevator to level -1"
     }],
     "operator": {
-      "name": "Green Energy Co"
+      "name": "Green Energy Co",
+      "website": "https://greenenergy.example.com"
     },
     "suboperator": {
       "name": "Local Operator"
@@ -98,8 +99,8 @@ export const sampleData_211 = {
 
   session: {
     "id": "SES456",
-    "start_date_time": "2024-01-15T14:30:00Z",
-    "end_date_time": "2024-01-15T15:30:00Z",
+    "start_datetime": "2024-01-15T14:30:00Z",
+    "end_datetime": "2024-01-15T15:30:00Z",
     "kwh": 22.5,
     "auth_id": "AUTH123",
     "auth_method": "WHITELIST",
@@ -143,7 +144,7 @@ export const sampleData_211 = {
   cdr: {
     "id": "CDR789",
     "start_date_time": "2024-01-15T14:30:00Z",
-    "end_date_time": "2024-01-15T15:30:00Z",
+    "stop_date_time": "2024-01-15T15:30:00Z",
     "auth_id": "AUTH123",
     "auth_method": "WHITELIST",
     "location": {
@@ -272,7 +273,7 @@ export const sampleData_221 = {
         "text": "Parking entrance"
       }
     }],
-    "parking_restrictions": ["EV_ONLY", "PLUGGED"],
+    "parking_type": "PARKING_LOT",
     "opening_times": {
       "twentyfourseven": true
     },
@@ -302,7 +303,8 @@ export const sampleData_221 = {
       "text": "Located next to the canal, blue building"
     }],
     "operator": {
-      "name": "Amsterdam Charging Network"
+      "name": "Amsterdam Charging Network",
+      "website": "https://amsterdamcharging.example.com"
     },
     "facilities": ["CAFE", "WIFI", "PARKING_LOT"],
     "evses": [{
@@ -347,6 +349,8 @@ export const sampleData_221 = {
     "end_date_time": "2024-01-15T15:30:00Z",
     "kwh": 25.5,
     "cdr_token": {
+      "country_code": "NL",
+      "party_id": "ABC",
       "uid": "TOK123",
       "type": "RFID",
       "contract_id": "CON123"
@@ -370,8 +374,12 @@ export const sampleData_221 = {
       "tariff_id": "TAR123"
     }],
     "total_cost": {
-      "excl_vat": 10.21,
-      "incl_vat": 12.35
+      "before_taxes": 10.21,
+      "taxes": [{
+        "name": "VAT",
+        "percentage": 21.0,
+        "amount": 2.14
+      }]
     },
     "status": "COMPLETED",
     "last_updated": "2024-01-15T15:30:00Z"
@@ -391,7 +399,7 @@ export const sampleData_230 = {
       "type": "APP_USER",
       "contract_id": "CONT456"
     }],
-    "name": "Smart HDV Charging Hub 2.3.0",
+    "name": "Smart EV Charging Hub 2.3.0",
     "address": "Zuiderpark 456",
     "city": "Rotterdam",
     "postal_code": "3083 CX",
@@ -406,17 +414,73 @@ export const sampleData_230 = {
       "longitude": "4.466462",
       "name": {
         "language": "en",
-        "text": "HDV parking area entrance"
+        "text": "Main parking area entrance"
       }
     }],
-    "parking_restrictions": ["EV_ONLY", "PLUGGED"],
+    "parking_type": "PARKING_LOT",
+    "evses": [{
+      "uid": "EVS456",
+      "evse_id": "NL*ABC*E456789",
+      "status": "AVAILABLE",
+      "capabilities": ["CHARGING_PROFILE_CAPABLE", "CHARGING_PREFERENCES_CAPABLE", "REMOTE_START_STOP_CAPABLE", "RFID_READER", "RESERVABLE"],
+      "connectors": [{
+        "id": "CON456",
+        "standard": "IEC_62196_T2_COMBO",
+        "format": "CABLE",
+        "power_type": "DC",
+        "max_voltage": 1000,
+        "max_amperage": 500,
+        "max_electric_power": 500000,
+        "tariff_ids": ["TAR456"],
+        "last_updated": "2024-01-15T14:30:00Z"
+      }, {
+        "id": "CON457",
+        "standard": "GBT_DC",
+        "format": "CABLE",
+        "power_type": "DC",
+        "max_voltage": 1000,
+        "max_amperage": 350,
+        "max_electric_power": 350000,
+        "tariff_ids": ["TAR456"],
+        "last_updated": "2024-01-15T14:30:00Z"
+      }],
+      "floor_level": "0",
+      "physical_reference": "Bay 1",
+      "directions": [{
+        "language": "en",
+        "text": "First charging bay on the right"
+      }],
+      "parking_restrictions": ["EV_ONLY"],
+      "images": [{
+        "url": "https://example.com/images/hdv_charger.jpg",
+        "category": "CHARGER",
+        "type": "jpeg"
+      }],
+      "last_updated": "2024-01-15T14:30:00Z"
+    }],
+    "parking_places": [{
+      "id": "PARK001",
+      "vehicle_types": ["PERSONAL_VEHICLE", "VAN"],
+      "restricted_to_type": false,
+      "reservation_required": false
+    }],
+    "directions": [{
+      "language": "en",
+      "text": "Take the dedicated entrance, follow charging signs"
+    }],
+    "operator": {
+      "name": "Rotterdam Charging Network",
+      "website": "https://rotterdamcharging.example.com"
+    },
+    "facilities": ["RESTAURANT", "WIFI", "PARKING_LOT", "FUEL_STATION"],
+    "time_zone": "Europe/Amsterdam",
     "opening_times": {
       "twentyfourseven": true
     },
     "charging_when_closed": true,
     "images": [{
-      "url": "https://example.com/images/hdv_location.jpg",
-      "thumbnail": "https://example.com/images/hdv_location_thumb.jpg",
+      "url": "https://example.com/images/location.jpg",
+      "thumbnail": "https://example.com/images/location_thumb.jpg",
       "category": "LOCATION",
       "type": "jpeg",
       "width": 1200,
@@ -435,60 +499,8 @@ export const sampleData_230 = {
         "percentage": 15.0
       }],
       "supplier_name": "Sustainable Fleet Energy",
-      "energy_product_name": "HDV Green Power"
+      "energy_product_name": "Green Power"
     },
-    "directions": [{
-      "language": "en",
-      "text": "Take the dedicated HDV entrance, follow HDV charging signs"
-    }],
-    "operator": {
-      "name": "Rotterdam HDV Charging Network"
-    },
-    "facilities": ["RESTAURANT", "WIFI", "PARKING_LOT", "FUEL_STATION"],
-    "vehicle_types": ["HDV", "TRUCK", "BUS"],
-    "max_reservation": 48,
-    "evses": [{
-      "uid": "EVS456",
-      "evse_id": "NL*ABC*E456789",
-      "status": "AVAILABLE",
-      "capabilities": ["CHARGING_PROFILE_CAPABLE", "REMOTE_START_STOP_CAPABLE", "RFID_READER", "RESERVABLE"],
-      "vehicle_types": ["HDV", "TRUCK"],
-      "connectors": [{
-        "id": "CON456",
-        "standard": "CCS",
-        "format": "CABLE",
-        "power_type": "DC",
-        "max_voltage": 1000,
-        "max_amperage": 500,
-        "max_electric_power": 500000,
-        "tariff_ids": ["TAR456"],
-        "last_updated": "2024-01-15T14:30:00Z"
-      }, {
-        "id": "CON457",
-        "standard": "GB_T_20234_3",
-        "format": "CABLE",
-        "power_type": "DC",
-        "max_voltage": 1000,
-        "max_amperage": 350,
-        "max_electric_power": 350000,
-        "tariff_ids": ["TAR456"],
-        "last_updated": "2024-01-15T14:30:00Z"
-      }],
-      "floor_level": "0",
-      "physical_reference": "HDV Bay 1",
-      "directions": [{
-        "language": "en",
-        "text": "First HDV charging bay on the right, suitable for articulated trucks"
-      }],
-      "parking_restrictions": ["EV_ONLY"],
-      "images": [{
-        "url": "https://example.com/images/hdv_charger.jpg",
-        "category": "CHARGER",
-        "type": "jpeg"
-      }],
-      "last_updated": "2024-01-15T14:30:00Z"
-    }],
-    "time_zone": "Europe/Amsterdam",
     "last_updated": "2024-01-15T14:30:00Z"
   },
 
@@ -500,16 +512,18 @@ export const sampleData_230 = {
     "end_date_time": "2024-01-15T16:30:00Z",
     "kwh": 155.7,
     "cdr_token": {
+      "country_code": "NL",
+      "party_id": "ABC",
       "uid": "TOK456",
-      "type": "OTHER",
-      "contract_id": "HDV_CON456"
+      "type": "RFID",
+      "contract_id": "CON456"
     },
     "auth_method": "COMMAND",
-    "authorization_reference": "HDV_AUTH456",
+    "authorization_reference": "AUTH456",
     "location_id": "LOC456",
     "evse_uid": "EVS456",
     "connector_id": "CON456",
-    "meter_id": "HDV_MTR456",
+    "meter_id": "MTR456",
     "currency": "EUR",
     "charging_periods": [{
       "start_date_time": "2024-01-15T14:30:00Z",
@@ -526,18 +540,23 @@ export const sampleData_230 = {
       "tariff_id": "TAR456"
     }],
     "total_cost": {
-      "excl_vat": 93.42,
-      "incl_vat": 113.04
+      "before_taxes": 93.42,
+      "taxes": [{
+        "name": "VAT",
+        "percentage": 21.0,
+        "amount": 19.62
+      }]
     },
-    "vehicle_type": "HDV",
+    "vehicle_type": "TRUCK_WITH_TRAILER",
     "vehicle_info": {
       "license_plate": "NL-HDV-456",
       "brand": "Volvo",
       "model": "FH Electric",
-      "connector_type": "CCS",
+      "connector_type": "IEC_62196_T2_COMBO",
       "max_charging_power": 500000
     },
     "charging_preferences": {
+      "profile_type": "FAST",
       "departure_time": "2024-01-16T06:00:00Z",
       "energy_need": 200.0,
       "discharge_allowed": false
@@ -547,62 +566,133 @@ export const sampleData_230 = {
   },
 
   booking: {
+    "id": "BOK456",
     "country_code": "NL",
     "party_id": "ABC",
-    "id": "BOK456",
-    "token": {
+    "request_id": "REQ456",
+    "location_id": "LOC456",
+    "booking_tokens": [{
+      "country_code": "NL",
+      "party_id": "ABC",
       "uid": "TOK456",
       "type": "RFID",
-      "auth_id": "HDV_AUTH456",
-      "issuer": "HDV Fleet Services",
-      "valid": true,
-      "whitelist": "ALLOWED",
-      "last_updated": "2024-01-15T14:30:00Z"
+      "contract_id": "CON456"
+    }],
+    "tariff_ids": ["TAR456"],
+    "period": {
+      "start_date_time": "2024-01-16T08:00:00Z",
+      "end_date_time": "2024-01-16T12:00:00Z"
     },
-    "location_id": "LOC456",
-    "evse_uid": "EVS456",
-    "connector_id": "CON456",
-    "start_date_time": "2024-01-16T08:00:00Z",
-    "end_date_time": "2024-01-16T12:00:00Z",
-    "booking_type": "BOOKING",
-    "status": "ACCEPTED",
-    "vehicle_type": "HDV",
-    "vehicle_details": {
-      "license_plate": "NL-HDV-789",
-      "brand": "Volvo",
-      "model": "FH Electric Articulated",
-      "connector_type": "CCS",
-      "max_charging_power": 500000
+    "reservation_status": "RESERVED",
+    "authorization_reference": "AUTH456",
+    "booking_terms": {
+      "supported_access_methods": ["RFID"],
+      "change_until_minutes": 60,
+      "cancel_until_minutes": 120
     },
-    "estimated_consumption": 180.5,
-    "booking_restrictions": ["HDV_ONLY", "FAST_CHARGING_ONLY"],
-    "cancellation_policy": {
-      "cancellation_fee": {
-        "excl_vat": 25.0,
-        "incl_vat": 30.25
+    "booking_requests": [{
+      "request_status": "ACCEPTED",
+      "booking_request": {
+        "country_code": "NL",
+        "party_id": "ABC",
+        "request_id": "REQ456",
+        "location_id": "LOC456",
+        "booking_location_id": "LOC456",
+        "period": {
+          "start_date_time": "2024-01-16T08:00:00Z",
+          "end_date_time": "2024-01-16T12:00:00Z"
+        },
+        "authorization_reference": "AUTH456"
       },
-      "free_cancellation_until": "2024-01-16T06:00:00Z"
-    },
-    "created": "2024-01-15T14:30:00Z",
+      "request_received": "2024-01-15T14:30:00Z"
+    }],
     "last_updated": "2024-01-15T14:30:00Z"
+  },
+
+  credentials: {
+    "token": "abcdefghijklmnopqrstuvwxyz0123456789",
+    "url": "https://example.com/ocpi/versions",
+    "roles": [{
+      "role": "CPO",
+      "business_details": {
+        "name": "Rotterdam Charging Network",
+        "website": "https://rotterdamcharging.example.com"
+      },
+      "party_id": "ABC",
+      "country_code": "NL"
+    }]
+  },
+
+  versions: {
+    "version": "2.3.0",
+    "endpoints": [{
+      "identifier": "locations",
+      "role": "SENDER",
+      "url": "https://example.com/ocpi/2.3.0/locations"
+    }, {
+      "identifier": "sessions",
+      "role": "SENDER",
+      "url": "https://example.com/ocpi/2.3.0/sessions"
+    }]
+  },
+
+  chargingprofiles: {
+    "country_code": "NL",
+    "party_id": "ABC",
+    "id": "CP001",
+    "session_id": "SES456",
+    "charging_rate_unit": "W",
+    "charging_profile_periods": [{
+      "start_period": 0,
+      "limit": 50000
+    }, {
+      "start_period": 3600,
+      "limit": 35000
+    }],
+    "last_updated": "2024-01-15T14:30:00Z"
+  },
+
+  hubclientinfo: {
+    "client_id": "HUB001",
+    "connection_status": "CONNECTED",
+    "last_updated": "2024-01-15T14:30:00Z"
+  },
+
+  payments: {
+    "country_code": "NL",
+    "party_id": "ABC",
+    "id": "PAY001",
+    "evse_uid": "EVS456",
+    "authorization_reference": "AUTH456",
+    "total_cost": {
+      "before_taxes": 93.42,
+      "taxes": [{
+        "name": "VAT",
+        "percentage": 21.0,
+        "amount": 19.62
+      }]
+    },
+    "last_updated": "2024-01-15T16:30:00Z"
   }
 };
 
 // ============= Legacy Compatibility Exports =============
-// For backwards compatibility - these point to 2.2.1 data by default
 
 export const sampleLocation = sampleData_221.location;
 export const sampleSession = sampleData_221.session;
 export const sampleBooking = sampleData_230.booking;
 
-// Additional sample data that doesn't have version differences yet
+// Additional sample data shared across versions
 export const sampleCDR = {
   "country_code": "NL",
   "party_id": "ABC",
   "id": "CDR123",
   "start_date_time": "2024-01-15T14:30:00Z",
   "end_date_time": "2024-01-15T15:30:00Z",
+  "session_id": "SES123",
   "cdr_token": {
+    "country_code": "NL",
+    "party_id": "ABC",
     "uid": "TOK123",
     "type": "RFID",
     "contract_id": "CON123"
@@ -633,8 +723,12 @@ export const sampleCDR = {
     }]
   }],
   "total_cost": {
-    "excl_vat": 10.21,
-    "incl_vat": 12.35
+    "before_taxes": 10.21,
+    "taxes": [{
+      "name": "VAT",
+      "percentage": 21.0,
+      "amount": 2.14
+    }]
   },
   "total_energy": 25.5,
   "total_time": 3600,
@@ -646,6 +740,7 @@ export const sampleTariff = {
   "party_id": "ABC",
   "id": "TAR123",
   "currency": "EUR",
+  "tax_included": "YES",
   "elements": [{
     "price_components": [{
       "type": "ENERGY",
@@ -657,21 +752,26 @@ export const sampleTariff = {
 };
 
 export const sampleToken = {
+  "country_code": "NL",
+  "party_id": "ABC",
   "uid": "TOK123",
   "type": "RFID",
-  "auth_id": "AUTH123",
+  "contract_id": "CON123",
   "issuer": "Sample Company",
   "valid": true,
   "whitelist": "ALLOWED",
+  "language": "en",
   "last_updated": "2024-01-15T14:30:00Z"
 };
 
 export const sampleStartSessionCommand = {
   "response_url": "https://example.com/response",
   "token": {
+    "country_code": "NL",
+    "party_id": "ABC",
     "uid": "TOK123",
     "type": "RFID",
-    "auth_id": "AUTH123",
+    "contract_id": "CON123",
     "issuer": "Sample Company",
     "valid": true,
     "whitelist": "ALLOWED",
@@ -689,9 +789,11 @@ export const sampleStopSessionCommand = {
 export const sampleReserveNowCommand = {
   "response_url": "https://example.com/response",
   "token": {
+    "country_code": "NL",
+    "party_id": "ABC",
     "uid": "TOK123",
     "type": "RFID",
-    "auth_id": "AUTH123",
+    "contract_id": "CON123",
     "issuer": "Sample Company",
     "valid": true,
     "whitelist": "ALLOWED",
@@ -714,6 +816,13 @@ export const sampleUnlockConnectorCommand = {
   "evse_uid": "EVS123",
   "connector_id": "CON123"
 };
+
+// New module sample exports
+export const sampleCredentials = sampleData_230.credentials;
+export const sampleVersionDetails = sampleData_230.versions;
+export const sampleChargingProfile = sampleData_230.chargingprofiles;
+export const sampleHubClientInfo = sampleData_230.hubclientinfo;
+export const samplePayment = sampleData_230.payments;
 
 // OCPI 2.1.1-d2 sample data exports
 export const sampleLocation_211 = sampleData_211.location;
